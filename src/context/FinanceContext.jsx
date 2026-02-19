@@ -8,7 +8,44 @@ const FinanceContext = createContext();
 export const useFinance = () => useContext(FinanceContext);
 
 export const FinanceProvider = ({ children }) => {
-    const [data, setData] = useLocalStorage('finance_data_2026', initialData);
+    const [data, setLocalStorageData] = useLocalStorage('finance_data_2026', initialData);
+
+    // History Stack for Undo/Redo
+    const [history, setHistory] = useState([]);
+    const [future, setFuture] = useState([]);
+
+    const updateData = (newData) => {
+        setHistory(prev => {
+            const newHistory = [...prev, data];
+            if (newHistory.length > 50) newHistory.shift(); // Limit history size
+            return newHistory;
+        });
+        setFuture([]);
+        setLocalStorageData(newData);
+    };
+
+    const undo = () => {
+        if (history.length === 0) return;
+        const previousData = history[history.length - 1];
+        const newHistory = history.slice(0, -1);
+
+        setFuture(prev => [data, ...prev]);
+        setHistory(newHistory);
+        setLocalStorageData(previousData);
+    };
+
+    const redo = () => {
+        if (future.length === 0) return;
+        const nextData = future[0];
+        const newFuture = future.slice(1);
+
+        setHistory(prev => [...prev, data]);
+        setLocalStorageData(nextData);
+        setFuture(newFuture);
+    };
+
+    const canUndo = history.length > 0;
+    const canRedo = future.length > 0;
 
     // Data Migration / Initialization for missing fields
     useEffect(() => {
@@ -34,7 +71,7 @@ export const FinanceProvider = ({ children }) => {
 
         if (updated) {
             // console.log("Migrating data: added missing fields");
-            setData(newData);
+            setLocalStorageData(newData); // Direct update, don't push to history for migration
         }
     }, [data.categories, data.paymentMethods, data.schedule, data.brandSettings]);
 
@@ -46,14 +83,14 @@ export const FinanceProvider = ({ children }) => {
         } else {
             updatedMonths[monthIndex].incomes.push({ ...transaction, id: Date.now() });
         }
-        setData({ ...data, months: updatedMonths });
+        updateData({ ...data, months: updatedMonths });
     };
 
     // Helper for Piano Classes
     const addPianoClass = (monthIndex, pianoClass) => {
         const updatedMonths = [...data.months];
         updatedMonths[monthIndex].pianoClasses.push({ ...pianoClass, id: Date.now() });
-        setData({ ...data, months: updatedMonths });
+        updateData({ ...data, months: updatedMonths });
     };
 
     const updatePianoClass = (monthIndex, classId, updatedFields) => {
@@ -64,14 +101,14 @@ export const FinanceProvider = ({ children }) => {
                 ...updatedMonths[monthIndex].pianoClasses[classIndex],
                 ...updatedFields
             };
-            setData({ ...data, months: updatedMonths });
+            updateData({ ...data, months: updatedMonths });
         }
     };
 
     const deletePianoClass = (monthIndex, classId) => {
         const updatedMonths = [...data.months];
         updatedMonths[monthIndex].pianoClasses = updatedMonths[monthIndex].pianoClasses.filter(c => c.id !== classId);
-        setData({ ...data, months: updatedMonths });
+        updateData({ ...data, months: updatedMonths });
     };
 
     const deleteTransaction = (monthIndex, type, id) => {
@@ -81,7 +118,7 @@ export const FinanceProvider = ({ children }) => {
         } else {
             updatedMonths[monthIndex].incomes = updatedMonths[monthIndex].incomes.filter(t => t.id !== id);
         }
-        setData({ ...data, months: updatedMonths });
+        updateData({ ...data, months: updatedMonths });
     };
 
     // KPI Calculations
@@ -112,19 +149,19 @@ export const FinanceProvider = ({ children }) => {
     // Student Database Methods
     const addStudentToDb = (student) => {
         const newStudent = { ...student, id: Date.now(), active: true };
-        setData({ ...data, studentDb: [...(data.studentDb || []), newStudent] });
+        updateData({ ...data, studentDb: [...(data.studentDb || []), newStudent] });
     };
 
     const updateStudentInDb = (id, updatedFields) => {
         const updatedDb = (data.studentDb || []).map(s =>
             s.id === id ? { ...s, ...updatedFields } : s
         );
-        setData({ ...data, studentDb: updatedDb });
+        updateData({ ...data, studentDb: updatedDb });
     };
 
     const deleteStudentInDb = (id) => {
         const updatedDb = (data.studentDb || []).filter(s => s.id !== id);
-        setData({ ...data, studentDb: updatedDb });
+        updateData({ ...data, studentDb: updatedDb });
     };
 
     const importStudentsToMonth = (monthIndex) => {
@@ -148,7 +185,7 @@ export const FinanceProvider = ({ children }) => {
 
         const updatedMonths = [...data.months];
         updatedMonths[monthIndex].pianoClasses = [...updatedMonths[monthIndex].pianoClasses, ...newClasses];
-        setData({ ...data, months: updatedMonths });
+        updateData({ ...data, months: updatedMonths });
         return newClasses.length;
     };
 
@@ -173,26 +210,26 @@ export const FinanceProvider = ({ children }) => {
 
         const updatedMonths = [...data.months];
         updatedMonths[monthIndex].pianoClasses = [...updatedMonths[monthIndex].pianoClasses, ...newClasses];
-        setData({ ...data, months: updatedMonths });
+        updateData({ ...data, months: updatedMonths });
         return newClasses.length;
     };
 
     // Payment Methods
     const addPaymentMethod = (method) => {
         const newMethod = { ...method, id: Date.now() };
-        setData({ ...data, paymentMethods: [...(data.paymentMethods || []), newMethod] });
+        updateData({ ...data, paymentMethods: [...(data.paymentMethods || []), newMethod] });
     };
 
     const updatePaymentMethod = (id, updatedFields) => {
         const updatedMethods = (data.paymentMethods || []).map(m =>
             m.id === id ? { ...m, ...updatedFields } : m
         );
-        setData({ ...data, paymentMethods: updatedMethods });
+        updateData({ ...data, paymentMethods: updatedMethods });
     };
 
     const deletePaymentMethod = (id) => {
         const updatedMethods = (data.paymentMethods || []).filter(m => m.id !== id);
-        setData({ ...data, paymentMethods: updatedMethods });
+        updateData({ ...data, paymentMethods: updatedMethods });
     };
 
     // Categories & Subcategories
@@ -203,24 +240,24 @@ export const FinanceProvider = ({ children }) => {
             }
             return cat;
         });
-        setData({ ...data, categories: updatedCategories });
+        updateData({ ...data, categories: updatedCategories });
     };
 
     const addCategory = (category) => {
         const newCategory = { ...category, id: Date.now(), subcategories: [] };
-        setData({ ...data, categories: [...(data.categories || []), newCategory] });
+        updateData({ ...data, categories: [...(data.categories || []), newCategory] });
     };
 
     const updateCategory = (categoryId, updatedFields) => {
         const updatedCategories = data.categories.map(cat =>
             cat.id === categoryId ? { ...cat, ...updatedFields } : cat
         );
-        setData({ ...data, categories: updatedCategories });
+        updateData({ ...data, categories: updatedCategories });
     };
 
     const deleteCategory = (categoryId) => {
         const updatedCategories = data.categories.filter(cat => cat.id !== categoryId);
-        setData({ ...data, categories: updatedCategories });
+        updateData({ ...data, categories: updatedCategories });
     };
 
     const deleteSubcategory = (categoryId, subcategoryName) => {
@@ -233,29 +270,29 @@ export const FinanceProvider = ({ children }) => {
             }
             return cat;
         });
-        setData({ ...data, categories: updatedCategories });
+        updateData({ ...data, categories: updatedCategories });
     };
 
     // Schedule Methods
     const addScheduleEntry = (entry) => {
         const newEntry = { ...entry, id: Date.now() };
-        setData({ ...data, schedule: [...(data.schedule || []), newEntry] });
+        updateData({ ...data, schedule: [...(data.schedule || []), newEntry] });
     };
 
     const updateScheduleEntry = (id, updatedFields) => {
         const updatedSchedule = (data.schedule || []).map(item =>
             item.id === id ? { ...item, ...updatedFields } : item
         );
-        setData({ ...data, schedule: updatedSchedule });
+        updateData({ ...data, schedule: updatedSchedule });
     };
 
     const deleteScheduleEntry = (id) => {
         const updatedSchedule = (data.schedule || []).filter(item => item.id !== id);
-        setData({ ...data, schedule: updatedSchedule });
+        updateData({ ...data, schedule: updatedSchedule });
     };
 
     const updateBrandSettings = (updatedFields) => {
-        setData({
+        updateData({
             ...data,
             brandSettings: {
                 ...(data.brandSettings || initialData.brandSettings),
@@ -266,14 +303,14 @@ export const FinanceProvider = ({ children }) => {
 
     // Data Management
     const loadData = (newData) => {
-        setData(newData);
+        updateData(newData);
     };
 
     const startNewYear = () => {
         // Create a fresh copy of initial months structure
         const freshMonths = JSON.parse(JSON.stringify(initialData.months));
 
-        setData({
+        updateData({
             ...data,
             months: freshMonths,
             schedule: [], // Optional: clear schedule or keep it? User said "resets monthly data", usually schedule implies weekly recurrence functionality which might persist.
@@ -288,7 +325,11 @@ export const FinanceProvider = ({ children }) => {
 
     const value = {
         data,
-        updateData: setData,
+        updateData,
+        undo,
+        redo,
+        canUndo,
+        canRedo,
         addTransaction,
         deleteTransaction,
         addPianoClass,

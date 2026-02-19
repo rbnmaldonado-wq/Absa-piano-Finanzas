@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { FinanceProvider, useFinance } from './context/FinanceContext';
 import Dashboard from './components/Dashboard';
@@ -6,7 +5,7 @@ import MonthView from './components/MonthView';
 import {
   LayoutDashboard, Settings as SettingsIcon, Calendar, Menu, X, User,
   ChevronDown, ChevronRight, FileText, Music, AudioLines, Mic2, Disc,
-  Music2, Languages, Piano
+  Music2, Languages, Piano, Undo, Redo
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -24,7 +23,7 @@ function App() {
 }
 
 function AppContent() {
-  const { data, updateBrandSettings } = useFinance();
+  const { data, updateBrandSettings, undo, redo, canUndo, canRedo } = useFinance();
   const brand = data.brandSettings || { name: 'AbsaPiano', icon: 'Music' };
 
   const [currentView, setCurrentView] = useState('dashboard');
@@ -76,6 +75,37 @@ function AppContent() {
       {/* Global Ambient Background Lights */}
       <div className="fixed top-0 left-1/4 w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[128px] pointer-events-none z-0"></div>
       <div className="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[128px] pointer-events-none z-0"></div>
+
+      {/* Undo/Redo Floating Buttons */}
+      <AnimatePresence>
+        {(canUndo || canRedo) && (
+          <motion.div
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 50, opacity: 0 }}
+            className="fixed bottom-6 right-6 z-50 flex gap-3"
+          >
+            {canUndo && (
+              <button
+                onClick={undo}
+                className="flex items-center gap-2 px-4 py-3 bg-slate-900/80 backdrop-blur-xl border border-white/10 text-white rounded-full shadow-2xl hover:bg-slate-800 transition-all font-bold active:scale-95 group"
+              >
+                <Undo className="w-5 h-5 text-indigo-400 group-hover:text-indigo-300 transition-colors" />
+                <span className="hidden md:inline">Deshacer</span>
+              </button>
+            )}
+            {canRedo && (
+              <button
+                onClick={redo}
+                className="flex items-center gap-2 px-4 py-3 bg-slate-900/80 backdrop-blur-xl border border-white/10 text-white rounded-full shadow-2xl hover:bg-slate-800 transition-all font-bold active:scale-95 group"
+              >
+                <Redo className="w-5 h-5 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
+                <span className="hidden md:inline">Rehacer</span>
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mobile Toggle */}
       <button
