@@ -138,12 +138,38 @@ export const FinanceProvider = ({ children }) => {
                 studentId: s.id,
                 studentName: s.name,
                 rate: s.defaultRate,
+                duration: s.duration || '1 hora',
                 count: 4, // Default count
                 total: Number(s.defaultRate) * 4,
                 status: 'Pendiente'
             }));
 
         if (newClasses.length === 0) return 0; // No new students to import
+
+        const updatedMonths = [...data.months];
+        updatedMonths[monthIndex].pianoClasses = [...updatedMonths[monthIndex].pianoClasses, ...newClasses];
+        setData({ ...data, months: updatedMonths });
+        return newClasses.length;
+    };
+
+    const importSpecificStudents = (monthIndex, studentIds) => {
+        const selectedStudents = (data.studentDb || []).filter(s => studentIds.includes(s.id));
+        const currentMonthClasses = data.months[monthIndex].pianoClasses;
+
+        const newClasses = selectedStudents
+            .filter(s => !currentMonthClasses.some(c => c.studentId === s.id || c.studentName === s.name)) // Avoid duplicates
+            .map(s => ({
+                id: Date.now() + Math.random(),
+                studentId: s.id,
+                studentName: s.name,
+                rate: s.defaultRate,
+                duration: s.duration || '1 hora',
+                count: 4,
+                total: Number(s.defaultRate) * 4,
+                status: 'Pendiente'
+            }));
+
+        if (newClasses.length === 0) return 0;
 
         const updatedMonths = [...data.months];
         updatedMonths[monthIndex].pianoClasses = [...updatedMonths[monthIndex].pianoClasses, ...newClasses];
@@ -273,6 +299,7 @@ export const FinanceProvider = ({ children }) => {
         updateStudentInDb,
         deleteStudentInDb,
         importStudentsToMonth,
+        importSpecificStudents,
         addPaymentMethod,
         updatePaymentMethod,
         deletePaymentMethod,

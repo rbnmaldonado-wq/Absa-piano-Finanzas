@@ -1,14 +1,26 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, CheckCircle, Clock, User, DollarSign, Users, XCircle, Pencil, Timer } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, Clock, User, DollarSign, Users, XCircle, Pencil, Timer, CheckSquare, Square } from 'lucide-react';
 
 const PianoClassesTable = ({ monthIndex }) => {
-    const { data, addPianoClass, updatePianoClass, deletePianoClass, importStudentsToMonth } = useFinance();
+    const { data, addPianoClass, updatePianoClass, deletePianoClass, importStudentsToMonth, importSpecificStudents } = useFinance();
     const classes = data.months[monthIndex].pianoClasses || [];
+    const allStudents = data.studentDb || [];
 
     const [isAdding, setIsAdding] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [selectedStudents, setSelectedStudents] = useState([]);
+
+    // Students available for import (active and not already in this month)
+    const availableStudents = useMemo(() => {
+        return allStudents.filter(s =>
+            s.active &&
+            !classes.some(c => c.studentId === s.id || c.studentName === s.name)
+        );
+    }, [allStudents, classes]);
+
     const [newClass, setNewClass] = useState({
         studentName: '',
         rate: 35000,
@@ -17,12 +29,33 @@ const PianoClassesTable = ({ monthIndex }) => {
         status: 'Pendiente'
     });
 
-    const handleImport = () => {
+    const handleImportAll = () => {
         const count = importStudentsToMonth(monthIndex);
         if (count > 0) {
             alert(`Se importaron ${count} alumnos activos.`);
         } else {
-            alert("No hay alumnos nuevos para importar o la base de datos está vacía.");
+            alert("No hay alumnos nuevos para importar.");
+        }
+    };
+
+    const handleOpenImportModal = () => {
+        setSelectedStudents([]); // Reset selection
+        setIsImportModalOpen(true);
+    };
+
+    const toggleStudentSelection = (studentId) => {
+        setSelectedStudents(prev =>
+            prev.includes(studentId)
+                ? prev.filter(id => id !== studentId)
+                : [...prev, studentId]
+        );
+    };
+
+    const confirmImportSelection = () => {
+        const count = importSpecificStudents(monthIndex, selectedStudents);
+        if (count > 0) {
+            // alert(`Se importaron ${count} alumnos seleccionados.`);
+            setIsImportModalOpen(false);
         }
     };
 
@@ -41,7 +74,93 @@ const PianoClassesTable = ({ monthIndex }) => {
     };
 
     return (
-        <div className="bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-white/5 overflow-hidden shadow-2xl shadow-black/20">
+        <div className="bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-white/5 overflow-hidden shadow-2xl shadow-black/20 relative">
+
+            {/* Import Selection Modal */}
+            <AnimatePresence>
+                {isImportModalOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[80%]"
+                        >
+                            <div className="p-6 border-b border-white/5 flex justify-between items-center bg-slate-900 sticky top-0 z-10">
+                                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                    <Users className="w-5 h-5 text-indigo-400" />
+                                    Seleccionar Alumnos
+                                </h3>
+                                <button onClick={() => setIsImportModalOpen(false)} className="text-slate-400 hover:text-white p-2 hover:bg-white/5 rounded-lg transition-colors">
+                                    <XCircle className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="p-4 overflow-y-auto custom-scrollbar flex-1">
+                                {availableStudents.length === 0 ? (
+                                    <div className="text-center py-8 text-slate-500">
+                                        <p>No hay alumnos disponibles para importar.</p>
+                                        <p className="text-xs mt-1">Todos los alumnos activos ya están en la lista de este mes.</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {availableStudents.map(student => (
+                                            <div
+                                                key={student.id}
+                                                onClick={() => toggleStudentSelection(student.id)}
+                                                className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${selectedStudents.includes(student.id)
+                                                        ? 'bg-indigo-500/20 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.1)]'
+                                                        : 'bg-slate-950/50 border-white/5 hover:bg-white/5'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${selectedStudents.includes(student.id) ? 'bg-indigo-500' : 'bg-slate-800'}`}>
+                                                        {student.name.charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <p className={`font-bold ${selectedStudents.includes(student.id) ? 'text-white' : 'text-slate-300'}`}>{student.name}</p>
+                                                        <p className="text-xs text-slate-500 font-mono">${Number(student.defaultRate).toLocaleString('es-CL')}</p>
+                                                    </div>
+                                                </div>
+                                                <div className={`p-1 rounded-full ${selectedStudents.includes(student.id) ? 'text-indigo-400' : 'text-slate-600'}`}>
+                                                    {selectedStudents.includes(student.id) ? <CheckSquare className="w-6 h-6" /> : <Square className="w-6 h-6" />}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="p-6 border-t border-white/5 bg-slate-900 sticky bottom-0 z-10 flex justify-between items-center gap-4">
+                                <div className="text-sm text-slate-400">
+                                    <span className="font-bold text-white">{selectedStudents.length}</span> seleccionados
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setIsImportModalOpen(false)}
+                                        className="px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl font-bold transition-all text-sm"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={confirmImportSelection}
+                                        disabled={selectedStudents.length === 0}
+                                        className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 font-bold shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm flex items-center gap-2"
+                                    >
+                                        <CheckCircle className="w-4 h-4" /> Importar
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/5 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
                 <div className="relative z-10">
@@ -53,14 +172,22 @@ const PianoClassesTable = ({ monthIndex }) => {
                     </h3>
                     <p className="text-sm text-slate-400 mt-2 ml-1">Gestiona tus alumnos y pagos mensuales</p>
                 </div>
-                <div className="flex gap-3 relative z-10">
+                <div className="flex flex-wrap gap-2 relative z-10">
                     <button
-                        onClick={handleImport}
+                        onClick={handleOpenImportModal}
+                        className="flex items-center gap-2 px-3 py-2.5 bg-slate-800 text-slate-300 rounded-xl hover:bg-slate-700 transition-all text-sm font-bold border border-white/10"
+                        title="Seleccionar alumnos específicos"
+                    >
+                        <CheckSquare className="w-4 h-4" />
+                        <span className="hidden sm:inline">Seleccionar</span>
+                    </button>
+                    <button
+                        onClick={handleImportAll}
                         className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl hover:bg-emerald-500/20 transition-all text-sm font-bold border border-emerald-500/30 shadow-lg shadow-emerald-500/5"
-                        title="Importar alumnos activos desde la base de datos"
+                        title="Importar TODOS los alumnos activos"
                     >
                         <Users className="w-4 h-4" />
-                        <span className="hidden sm:inline">Cargar Alumnos</span>
+                        <span className="hidden sm:inline">Cargar Todo</span>
                     </button>
                     <button
                         onClick={() => setIsAdding(!isAdding)}
@@ -69,7 +196,7 @@ const PianoClassesTable = ({ monthIndex }) => {
                             : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/20'
                             }`}
                     >
-                        {isAdding ? <><XCircle className="w-4 h-4" /> Cancelar</> : <><Plus className="w-4 h-4" /> Nuevo Alumno</>}
+                        {isAdding ? <><XCircle className="w-4 h-4" /> Cancelar</> : <><Plus className="w-4 h-4" /> Nuevo</>}
                     </button>
                 </div>
             </div>
@@ -166,9 +293,14 @@ const PianoClassesTable = ({ monthIndex }) => {
                                             <User className="w-8 h-8" />
                                         </div>
                                         <p className="text-slate-400 font-medium">No hay clases registradas este mes.</p>
-                                        <button onClick={handleImport} className="px-6 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl hover:bg-indigo-500/20 transition-all font-bold">
-                                            Cargar alumnos activos
-                                        </button>
+                                        <div className="flex gap-4">
+                                            <button onClick={handleOpenImportModal} className="px-6 py-2 bg-slate-800 text-slate-300 border border-white/10 rounded-xl hover:bg-slate-700 transition-all font-bold">
+                                                Seleccionar
+                                            </button>
+                                            <button onClick={handleImportAll} className="px-6 py-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-xl hover:bg-indigo-500/20 transition-all font-bold">
+                                                Cargar Todo
+                                            </button>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>

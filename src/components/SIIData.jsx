@@ -14,7 +14,7 @@ const SIIData = () => {
         name: '',
         fullName: '',
         address: '',
-        phone: '',
+        rut: '',
         email: '',
         defaultRate: 35000
     });
@@ -23,7 +23,7 @@ const SIIData = () => {
         e.preventDefault();
         if (!newStudent.name) return;
         addStudentToDb(newStudent);
-        setNewStudent({ name: '', fullName: '', address: '', phone: '', email: '', defaultRate: 35000 });
+        setNewStudent({ name: '', fullName: '', address: '', rut: '', email: '', defaultRate: 35000 });
         setIsAdding(false);
     };
 
@@ -120,13 +120,13 @@ const SIIData = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 font-sans">Teléfono</label>
+                                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5 font-sans">RUT</label>
                                 <input
                                     type="text"
                                     className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-950/50 text-white text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all font-mono"
-                                    placeholder="+56 9..."
-                                    value={newStudent.phone}
-                                    onChange={e => setNewStudent({ ...newStudent, phone: e.target.value })}
+                                    placeholder="12.345.678-K"
+                                    value={newStudent.rut}
+                                    onChange={e => setNewStudent({ ...newStudent, rut: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -196,7 +196,7 @@ const SIIRow = ({ student, onUpdate, onDelete, onCopy, copiedId }) => {
     const [editData, setEditData] = useState({
         fullName: student.fullName || '',
         address: student.address || '',
-        phone: student.phone || '',
+        rut: student.rut || '',
         email: student.email || ''
     });
 
@@ -232,14 +232,14 @@ const SIIRow = ({ student, onUpdate, onDelete, onCopy, copiedId }) => {
                         <>
                             <EditField label="Nombre Completo" value={editData.fullName} onChange={v => setEditData({ ...editData, fullName: v })} />
                             <EditField label="Dirección" value={editData.address} onChange={v => setEditData({ ...editData, address: v })} />
-                            <EditField label="Teléfono" value={editData.phone} onChange={v => setEditData({ ...editData, phone: v })} />
+                            <EditField label="RUT" value={editData.rut} onChange={v => setEditData({ ...editData, rut: v })} />
                             <EditField label="E-mail" value={editData.email} onChange={v => setEditData({ ...editData, email: v })} />
                         </>
                     ) : (
                         <>
                             <DataField label="Nombre SII" value={student.fullName} id={student.id} field="fullName" onCopy={onCopy} copiedId={copiedId} />
                             <DataField label="Dirección" value={student.address} id={student.id} field="address" onCopy={onCopy} copiedId={copiedId} />
-                            <DataField label="Teléfono" value={student.phone} id={student.id} field="phone" onCopy={onCopy} copiedId={copiedId} />
+                            <DataField label="RUT" value={student.rut} id={student.id} field="rut" onCopy={onCopy} copiedId={copiedId} />
                             <DataField label="E-mail" value={student.email} id={student.id} field="email" onCopy={onCopy} copiedId={copiedId} />
                         </>
                     )}

@@ -4,6 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/Absa-piano-Finanzas/',
   plugins: [
     react(),
     VitePWA({
@@ -14,9 +15,10 @@ export default defineConfig({
         short_name: 'Finance',
         description: 'Gestión de finanzas personales y clases de piano',
         theme_color: '#ffffff',
-        start_url: '/',
+        start_url: '/Absa-piano-Finanzas/',
         display: 'standalone',
         background_color: '#ffffff',
+        scope: '/Absa-piano-Finanzas/',
         icons: [
           {
             src: 'pwa-192x192.png',

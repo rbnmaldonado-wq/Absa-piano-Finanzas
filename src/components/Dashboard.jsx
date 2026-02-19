@@ -4,7 +4,7 @@ import { useFinance } from '../context/FinanceContext';
 import { motion } from 'framer-motion';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    AreaChart, Area
+    PieChart, Pie, Cell
 } from 'recharts';
 import { Wallet, TrendingUp, TrendingDown, Music } from 'lucide-react';
 
@@ -14,10 +14,18 @@ const Dashboard = () => {
     const summary = useMemo(() => {
         let income = 0;
         let expense = 0;
+        const categoryExpenses = {};
+
         const monthlyData = data.months.map(m => {
             const mIncome = m.incomes.reduce((acc, curr) => acc + Number(curr.amount), 0)
                 + m.pianoClasses.reduce((acc, curr) => acc + Number(curr.total), 0);
             const mExpense = m.expenses.reduce((acc, curr) => acc + Number(curr.amount), 0);
+
+            // Aggregate expenses by category
+            m.expenses.forEach(e => {
+                const cat = e.category || 'Otros';
+                categoryExpenses[cat] = (categoryExpenses[cat] || 0) + Number(e.amount);
+            });
 
             income += mIncome;
             expense += mExpense;
@@ -30,8 +38,15 @@ const Dashboard = () => {
             };
         });
 
-        return { totalIncome: income, totalExpense: expense, balance: income - expense, chartData: monthlyData };
+        const pieData = Object.keys(categoryExpenses).map(key => ({
+            name: key,
+            value: categoryExpenses[key]
+        })).sort((a, b) => b.value - a.value);
+
+        return { totalIncome: income, totalExpense: expense, balance: income - expense, chartData: monthlyData, pieData };
     }, [data]);
+
+    const COLORS = ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#6366f1', '#14b8a6', '#f43f5e'];
 
     return (
         <div className="space-y-8">
@@ -76,7 +91,7 @@ const Dashboard = () => {
 
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Income vs Expense Chart */}
+                {/* Income vs Expense Chart (Bar Chart) */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -92,21 +107,12 @@ const Dashboard = () => {
                     </h3>
                     <div className="h-80 w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={summary.chartData}>
-                                <defs>
-                                    <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
-                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2} />
-                                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
+                            <BarChart data={summary.chartData} barGap={4}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff" strokeOpacity={0.05} />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dx={-10} />
                                 <Tooltip
+                                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                                     contentStyle={{
                                         borderRadius: '16px',
                                         border: '1px solid rgba(255,255,255,0.1)',
@@ -118,53 +124,84 @@ const Dashboard = () => {
                                     itemStyle={{ fontSize: '13px', fontWeight: 600 }}
                                     labelStyle={{ color: '#94a3b8', marginBottom: '8px', fontSize: '12px' }}
                                 />
-                                <Area
-                                    type="monotone"
+                                <Bar
                                     dataKey="Income"
-                                    stroke="#10b981"
-                                    strokeWidth={3}
-                                    fillOpacity={1}
-                                    fill="url(#colorIncome)"
                                     name="Ingresos"
-                                    activeDot={{ r: 6, strokeWidth: 0 }}
+                                    fill="#10b981"
+                                    radius={[4, 4, 0, 0]}
+                                    barSize={20}
                                 />
-                                <Area
-                                    type="monotone"
+                                <Bar
                                     dataKey="Expense"
-                                    stroke="#f43f5e"
-                                    strokeWidth={3}
-                                    fillOpacity={1}
-                                    fill="url(#colorExpense)"
                                     name="Gastos"
-                                    activeDot={{ r: 6, strokeWidth: 0 }}
+                                    fill="#f43f5e"
+                                    radius={[4, 4, 0, 0]}
+                                    barSize={20}
                                 />
-                            </AreaChart>
+                            </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </motion.div>
 
-                {/* Expenses Distribution Placeholder or Summary */}
+                {/* Expenses Breakdown (Pie Chart) */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="bg-slate-900/40 backdrop-blur-xl p-8 rounded-3xl border border-white/5 relative overflow-hidden group shadow-2xl shadow-black/20 flex flex-col justify-center items-center text-center"
+                    className="bg-slate-900/40 backdrop-blur-xl p-8 rounded-3xl border border-white/5 relative overflow-hidden group shadow-2xl shadow-black/20 flex flex-col"
                 >
-                    {/* Ambient Glows */}
-                    <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-64 h-64 bg-violet-500/5 rounded-full blur-3xl pointer-events-none"></div>
-
-                    <div className="p-4 bg-indigo-500/10 backdrop-blur-sm rounded-2xl mb-6 border border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.2)]">
-                        <Wallet className="w-12 h-12 text-indigo-400" />
+                    <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+                    <h3 className="text-lg font-bold mb-6 flex items-center gap-3 text-white">
+                        <div className="p-2 bg-rose-500/20 rounded-lg text-rose-400 border border-rose-500/30">
+                            <TrendingDown className="w-5 h-5" />
+                        </div>
+                        Distribución de Gastos
+                    </h3>
+                    <div className="h-80 w-full relative">
+                        {summary.pieData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={summary.pieData}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={80}
+                                        outerRadius={110}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                    >
+                                        {summary.pieData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(0,0,0,0)" />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        contentStyle={{
+                                            borderRadius: '16px',
+                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            boxShadow: '0 20px 40px -10px rgba(0,0,0,0.5)',
+                                            backgroundColor: '#0f172a', // Solid dark background
+                                            padding: '12px',
+                                            color: '#fff'
+                                        }}
+                                        itemStyle={{ color: '#fff', fontSize: '13px', fontWeight: 600 }} // Explicit white text
+                                        formatter={(value) => [`$${value.toLocaleString('es-CL')}`, '']}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center h-full text-slate-500">
+                                <Wallet className="w-12 h-12 mb-2 opacity-50" />
+                                <p>No hay gastos registrados</p>
+                            </div>
+                        )}
+                        {/* Centered Total or Label */}
+                        {summary.pieData.length > 0 && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total</span>
+                                <span className="text-xl font-bold text-white">${summary.totalExpense.toLocaleString('es-CL')}</span>
+                            </div>
+                        )}
                     </div>
-                    <h3 className="text-2xl font-bold mb-3 relative z-10 text-white">Resumen Rápido</h3>
-                    <p className="text-slate-400 mb-8 max-w-sm leading-relaxed relative z-10">
-                        Tienes un balance positivo este año. ¡Sigue así!
-                        Tus ingresos provienen mayoritariamente de las clases de piano.
-                    </p>
-                    <button className="px-8 py-3 bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500 hover:text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-indigo-500/40 hover:-translate-y-0.5 active:translate-y-0 relative z-10">
-                        Ver Detalles
-                    </button>
                 </motion.div>
             </div>
         </div>
@@ -184,9 +221,6 @@ const KPICard = ({ title, amount, icon: Icon, color, bg, delay }) => {
                 <div className={`p-3.5 rounded-2xl ${bg} group-hover:scale-110 transition-transform duration-300`}>
                     <Icon className={`w-6 h-6 ${color}`} />
                 </div>
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${amount >= 0 ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}`}>
-                    {amount >= 0 ? '+2.5%' : '-1.2%'}
-                </span>
             </div>
             <h3 className="text-slate-400 text-sm font-semibold tracking-wide uppercase relative z-10">{title}</h3>
             <p className="text-3xl font-bold mt-2 text-white tracking-tight relative z-10">
