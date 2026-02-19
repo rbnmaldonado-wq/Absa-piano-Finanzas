@@ -332,22 +332,20 @@ const StudentRow = ({ student, index, onToggle, onDelete, onUpdate }) => {
                             onChange={e => setEditData({ ...editData, name: e.target.value })}
                             placeholder="Nombre corto"
                         />
-                        <div className="flex gap-2">
+                        <input
+                            className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-900/50 text-white text-xs focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
+                            value={editData.fullName}
+                            onChange={e => setEditData({ ...editData, fullName: e.target.value })}
+                            placeholder="Nombre Completo"
+                        />
+                        <div className="relative w-full">
+                            <Home className="w-3 h-3 absolute left-2 top-2.5 text-slate-500" />
                             <input
-                                className="w-1/2 px-3 py-2 rounded-lg border border-slate-700 bg-slate-900/50 text-white text-xs focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
-                                value={editData.fullName}
-                                onChange={e => setEditData({ ...editData, fullName: e.target.value })}
-                                placeholder="Nombre Completo"
+                                className="w-full pl-6 px-3 py-2 rounded-lg border border-slate-700 bg-slate-900/50 text-white text-xs focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
+                                value={editData.family}
+                                onChange={e => setEditData({ ...editData, family: e.target.value })}
+                                placeholder="Familia (Opcional)"
                             />
-                            <div className="relative w-1/2">
-                                <Home className="w-3 h-3 absolute left-2 top-2.5 text-slate-500" />
-                                <input
-                                    className="w-full pl-6 px-3 py-2 rounded-lg border border-slate-700 bg-slate-900/50 text-white text-xs focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
-                                    value={editData.family}
-                                    onChange={e => setEditData({ ...editData, family: e.target.value })}
-                                    placeholder="Familia (Opcional)"
-                                />
-                            </div>
                         </div>
                     </div>
                 </td>
