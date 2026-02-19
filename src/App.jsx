@@ -77,35 +77,26 @@ function AppContent() {
       <div className="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[128px] pointer-events-none z-0"></div>
 
       {/* Undo/Redo Floating Buttons */}
-      <AnimatePresence>
-        {(canUndo || canRedo) && (
-          <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 50, opacity: 0 }}
-            className="fixed bottom-6 right-6 z-50 flex gap-3"
-          >
-            {canUndo && (
-              <button
-                onClick={undo}
-                className="flex items-center gap-2 px-4 py-3 bg-slate-900/80 backdrop-blur-xl border border-white/10 text-white rounded-full shadow-2xl hover:bg-slate-800 transition-all font-bold active:scale-95 group"
-              >
-                <Undo className="w-5 h-5 text-indigo-400 group-hover:text-indigo-300 transition-colors" />
-                <span className="hidden md:inline">Deshacer</span>
-              </button>
-            )}
-            {canRedo && (
-              <button
-                onClick={redo}
-                className="flex items-center gap-2 px-4 py-3 bg-slate-900/80 backdrop-blur-xl border border-white/10 text-white rounded-full shadow-2xl hover:bg-slate-800 transition-all font-bold active:scale-95 group"
-              >
-                <Redo className="w-5 h-5 text-emerald-400 group-hover:text-emerald-300 transition-colors" />
-                <span className="hidden md:inline">Rehacer</span>
-              </button>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Undo/Redo Floating Buttons */}
+      <div className="fixed bottom-6 right-6 z-[100] flex gap-3">
+        <button
+          onClick={undo}
+          disabled={!canUndo}
+          className={`flex items-center gap-2 px-4 py-3 bg-slate-900/80 backdrop-blur-xl border border-white/10 text-white rounded-full shadow-2xl transition-all font-bold group ${canUndo ? 'hover:bg-slate-800 active:scale-95' : 'opacity-40 cursor-not-allowed grayscale'}`}
+        >
+          <Undo className={`w-5 h-5 transition-colors ${canUndo ? 'text-indigo-400 group-hover:text-indigo-300' : 'text-slate-500'}`} />
+          <span className="hidden md:inline">Deshacer</span>
+        </button>
+
+        <button
+          onClick={redo}
+          disabled={!canRedo}
+          className={`flex items-center gap-2 px-4 py-3 bg-slate-900/80 backdrop-blur-xl border border-white/10 text-white rounded-full shadow-2xl transition-all font-bold group ${canRedo ? 'hover:bg-slate-800 active:scale-95' : 'opacity-40 cursor-not-allowed grayscale'}`}
+        >
+          <Redo className={`w-5 h-5 transition-colors ${canRedo ? 'text-emerald-400 group-hover:text-emerald-300' : 'text-slate-500'}`} />
+          <span className="hidden md:inline">Rehacer</span>
+        </button>
+      </div>
 
       {/* Mobile Toggle */}
       <button
