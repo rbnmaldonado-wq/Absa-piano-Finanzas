@@ -105,7 +105,17 @@ const PianoClassesTable = ({ monthIndex }) => {
             const yyyy = todayDate.getFullYear();
             const todayFormatted = `${dd}/${mm}/${yyyy}`;
 
-            const promptedDate = window.prompt("Ingrese la fecha de pago (Formato DD/MM/AAAA):", todayFormatted);
+            // Use existing date as default if available
+            let defaultPromptValue = todayFormatted;
+            if (cls.paymentDate) {
+                const parts = cls.paymentDate.split('-');
+                if (parts.length === 3) {
+                    // Assuming YYYY-MM-DD
+                    defaultPromptValue = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
+            }
+
+            const promptedDate = window.prompt("Ingrese la fecha de pago para confirmar (DD/MM/AAAA):", defaultPromptValue);
 
             if (promptedDate === null) {
                 // User cancelled the prompt, do not change status
@@ -116,17 +126,23 @@ const PianoClassesTable = ({ monthIndex }) => {
             let finalIsoDate = `${yyyy}-${mm}-${dd}`;
 
             if (promptedDate.trim() !== '') {
-                // Parse DD/MM/YYYY or DD-MM-YYYY
-                const parts = promptedDate.split(/[\/\-]/);
+                // Parse DD/MM/YYYY using various separators: / - . or space
+                const parts = promptedDate.split(/[\/\-\.\s]/);
                 if (parts.length === 3) {
-                    const p1 = parts[0].padStart(2, '0');
-                    const p2 = parts[1].padStart(2, '0');
-                    const p3 = parts[2];
+                    let d = parts[0].padStart(2, '0');
+                    let m = parts[1].padStart(2, '0');
+                    let y = parts[2];
 
-                    if (p3.length === 4) { // DD/MM/AAAA
-                        finalIsoDate = `${p3}-${p2}-${p1}`;
-                    } else if (p1.length === 4) { // AAAA/MM/DD
-                        finalIsoDate = `${p1}-${p2}-${p3}`;
+                    // Handle short year
+                    if (y.length === 2) y = '20' + y;
+
+                    // Simple validation: DD/MM/YYYY logic or YYYY/MM/DD logic
+                    if (y.length === 4 && d.length <= 2 && m.length <= 2) {
+                        // We expect DD/MM/YYYY
+                        finalIsoDate = `${y}-${m}-${d}`;
+                    } else if (d.length === 4 && m.length <= 2 && y.length <= 2) {
+                        // We got YYYY/MM/DD
+                        finalIsoDate = `${d}-${m}-${y.padStart(2, '0')}`;
                     }
                 }
             }
@@ -581,7 +597,7 @@ const ClassRow = ({ cls, onUpdate, onDelete, onToggleStatus }) => {
             </td>
             <td className="px-6 py-5">
                 {cls.paymentDate ? (
-                    <div className="text-[10px] font-bold font-mono text-slate-400 bg-slate-950/50 px-2.5 py-1 rounded-lg border border-white/5 w-fit">
+                    <div className="text-sm font-bold font-mono text-slate-300 bg-slate-950/60 px-3 py-1.5 rounded-lg border border-indigo-500/20 w-fit shadow-lg shadow-indigo-500/5">
                         {cls.paymentDate.split('-').reverse().join('/')}
                     </div>
                 ) : (
