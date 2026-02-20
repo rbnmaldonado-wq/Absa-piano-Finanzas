@@ -79,7 +79,12 @@ export const FinanceProvider = ({ children }) => {
     const addTransaction = (monthIndex, type, transaction) => {
         const updatedMonths = data.months.map((m, idx) => {
             if (idx === monthIndex) {
-                const newTransaction = { ...transaction, id: Date.now() };
+                const newTransaction = {
+                    ...transaction,
+                    id: Date.now(),
+                    status: transaction.status || 'Pendiente',
+                    paymentDate: transaction.paymentDate || null
+                };
                 return {
                     ...m,
                     expenses: type === 'expense' ? [...m.expenses, newTransaction] : m.expenses,
@@ -133,6 +138,20 @@ export const FinanceProvider = ({ children }) => {
         updateData({ ...data, months: updatedMonths });
     };
 
+    const updateTransaction = (monthIndex, type, id, updatedFields) => {
+        const updatedMonths = data.months.map((m, idx) => {
+            if (idx === monthIndex) {
+                return {
+                    ...m,
+                    expenses: type === 'expense' ? m.expenses.map(t => t.id === id ? { ...t, ...updatedFields } : t) : m.expenses,
+                    incomes: type === 'income' ? m.incomes.map(t => t.id === id ? { ...t, ...updatedFields } : t) : m.incomes
+                };
+            }
+            return m;
+        });
+        updateData({ ...data, months: updatedMonths });
+    };
+
     const deleteTransaction = (monthIndex, type, id) => {
         const updatedMonths = data.months.map((m, idx) => {
             if (idx === monthIndex) {
@@ -145,6 +164,42 @@ export const FinanceProvider = ({ children }) => {
             return m;
         });
         updateData({ ...data, months: updatedMonths });
+    };
+
+    const importTransactionsFromPreviousMonth = (monthIndex, type) => {
+        if (monthIndex === 0) return 0; // Cannot import for January
+
+        const prevMonth = data.months[monthIndex - 1];
+        const currentMonth = data.months[monthIndex];
+        const prevItems = type === 'expense' ? prevMonth.expenses : prevMonth.incomes;
+        const currentItems = type === 'expense' ? currentMonth.expenses : currentMonth.incomes;
+
+        // Clone items but give them new IDs and set status to Pendiente
+        const newItems = prevItems
+            .filter(pi => !currentItems.some(ci => ci.description === pi.description && ci.amount === pi.amount))
+            .map(pi => ({
+                ...pi,
+                id: Date.now() + Math.random(),
+                status: 'Pendiente',
+                paymentDate: null,
+                date: new Date().toISOString().split('T')[0] // Use current date for the new month's record
+            }));
+
+        if (newItems.length === 0) return 0;
+
+        const updatedMonths = data.months.map((m, idx) => {
+            if (idx === monthIndex) {
+                return {
+                    ...m,
+                    expenses: type === 'expense' ? [...m.expenses, ...newItems] : m.expenses,
+                    incomes: type === 'income' ? [...m.incomes, ...newItems] : m.incomes
+                };
+            }
+            return m;
+        });
+
+        updateData({ ...data, months: updatedMonths });
+        return newItems.length;
     };
 
     // KPI Calculations
@@ -399,7 +454,9 @@ export const FinanceProvider = ({ children }) => {
         deleteScheduleEntry,
         updateBrandSettings,
         loadData,
-        startNewYear
+        startNewYear,
+        importTransactionsFromPreviousMonth,
+        updateTransaction
     };
 
     return (
