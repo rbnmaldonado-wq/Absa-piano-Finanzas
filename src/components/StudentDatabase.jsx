@@ -14,11 +14,6 @@ const StudentDatabase = () => {
         address: '',
         rut: '',
         email: '',
-        rut: '',
-        email: '',
-        defaultRate: 35000,
-        rut: '',
-        email: '',
         defaultRate: 35000,
         duration: '1 hora',
         family: ''
@@ -213,12 +208,12 @@ const StudentDatabase = () => {
                         <thead className="bg-slate-950/50 text-slate-500 font-bold uppercase tracking-widest text-[10px] border-b border-white/5">
                             <tr>
                                 <th className="px-4 py-5 text-center w-16">#</th>
-                                <th className="px-8 py-5">Nombre</th>
-                                <th className="px-6 py-5">SII / Contacto</th>
-                                <th className="px-6 py-5">Duración</th>
-                                <th className="px-6 py-5">Tarifa Base</th>
-                                <th className="px-6 py-5">Estado</th>
-                                <th className="px-8 py-5 text-right">Acciones</th>
+                                <th className="px-8 py-5 min-w-[240px] md:min-w-[280px]">Nombre</th>
+                                <th className="px-6 py-5 min-w-[260px]">SII / Contacto</th>
+                                <th className="px-6 py-5 min-w-[130px]">Duración</th>
+                                <th className="px-6 py-5 min-w-[140px]">Tarifa Base</th>
+                                <th className="px-6 py-5 min-w-[140px]">Estado</th>
+                                <th className="px-6 py-5 text-right min-w-[120px]">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
@@ -237,33 +232,45 @@ const StudentDatabase = () => {
                             ) : (
                                 <>
                                     {/* Render Families */}
-                                    {Object.entries(groupedStudents.groups).map(([familyName, familyMembers]) => (
-                                        <React.Fragment key={familyName}>
-                                            <tr className="bg-slate-900/80 border-b border-white/5">
-                                                <td colSpan="7" className="px-4 py-3">
-                                                    <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm uppercase tracking-wider pl-2">
-                                                        <Home className="w-4 h-4" />
-                                                        {familyName}
-                                                        <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full normal-case tracking-normal">
-                                                            {familyMembers.length} alumnos
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            {familyMembers.map((student, index) => (
-                                                <StudentRow
-                                                    key={student.id}
-                                                    index={index + 1} // Index within family? Or global? Let's use simple counter if needed, or just keep it simple.
-                                                    // Warning: Index might look weird if reset per family. Let's just pass a unique key or handle index globally if strictly needed.
-                                                    // For now, let's just pass something unique or simple.
-                                                    student={student}
-                                                    onToggle={() => toggleActive(student)}
-                                                    onDelete={() => deleteStudentInDb(student.id)}
-                                                    onUpdate={(updates) => updateStudentInDb(student.id, updates)}
-                                                />
-                                            ))}
-                                        </React.Fragment>
-                                    ))}
+                                    {Object.entries(groupedStudents.groups).map(([familyName, familyMembers]) => {
+                                        const familyTotal = familyMembers.reduce((sum, student) => sum + Number(student.defaultRate), 0);
+                                        return (
+                                            <React.Fragment key={familyName}>
+                                                <tr className="bg-slate-900/80 border-b border-white/5">
+                                                    <td colSpan="4" className="px-4 py-3">
+                                                        <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm uppercase tracking-wider pl-2">
+                                                            <Home className="w-5 h-5 text-indigo-400" />
+                                                            {familyName}
+                                                            <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full normal-case tracking-normal">
+                                                                {familyMembers.length} alumnos
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-3 border-l border-white/5 bg-slate-900/50">
+                                                        <div className="flex flex-col items-start gap-1">
+                                                            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Total Familia</span>
+                                                            <div className="font-bold text-emerald-400 text-base font-mono bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-lg inline-block shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+                                                                ${familyTotal.toLocaleString('es-CL')}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td colSpan="2" className="bg-slate-900/50"></td>
+                                                </tr>
+                                                {familyMembers.map((student, index) => (
+                                                    <StudentRow
+                                                        key={student.id}
+                                                        index={index + 1} // Index within family? Or global? Let's use simple counter if needed, or just keep it simple.
+                                                        // Warning: Index might look weird if reset per family. Let's just pass a unique key or handle index globally if strictly needed.
+                                                        // For now, let's just pass something unique or simple.
+                                                        student={student}
+                                                        onToggle={() => toggleActive(student)}
+                                                        onDelete={() => deleteStudentInDb(student.id)}
+                                                        onUpdate={(updates) => updateStudentInDb(student.id, updates)}
+                                                    />
+                                                ))}
+                                            </React.Fragment>
+                                        );
+                                    })}
 
                                     {/* Render Individual Students (No Family) */}
                                     {groupedStudents.noFamily.length > 0 && (
@@ -402,7 +409,7 @@ const StudentRow = ({ student, index, onToggle, onDelete, onUpdate }) => {
                 <td className="px-6 py-4">
                     <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest bg-indigo-500/20 px-2 py-1 rounded-full text-center block">Editando</span>
                 </td>
-                <td className="px-8 py-4 text-right">
+                <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
                         <button onClick={handleSave} className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all" title="Guardar">
                             <CheckCircle className="w-5 h-5" />
@@ -469,7 +476,7 @@ const StudentRow = ({ student, index, onToggle, onDelete, onUpdate }) => {
                     )}
                 </button>
             </td>
-            <td className="px-8 py-5 text-right">
+            <td className="px-6 py-5 text-right">
                 <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
                     <button
                         onClick={() => setIsEditing(true)}

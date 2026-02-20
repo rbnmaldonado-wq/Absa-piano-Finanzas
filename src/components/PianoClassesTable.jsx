@@ -21,12 +21,39 @@ const PianoClassesTable = ({ monthIndex }) => {
         );
     }, [allStudents, classes]);
 
+    // Group classes by family
+    const groupedClasses = useMemo(() => {
+        const groups = {};
+        const noFamily = [];
+
+        classes.forEach(cls => {
+            if (cls.family && cls.family.trim() !== '') {
+                const familyName = cls.family.trim();
+                if (!groups[familyName]) {
+                    groups[familyName] = [];
+                }
+                groups[familyName].push(cls);
+            } else {
+                noFamily.push(cls);
+            }
+        });
+
+        // Sort families alphabetically
+        const sortedGroups = Object.keys(groups).sort().reduce((acc, key) => {
+            acc[key] = groups[key];
+            return acc;
+        }, {});
+
+        return { groups: sortedGroups, noFamily };
+    }, [classes]);
+
     const [newClass, setNewClass] = useState({
         studentName: '',
         rate: 35000,
         count: 4,
         duration: '45 min',
-        status: 'Pendiente'
+        status: 'Pendiente',
+        family: ''
     });
 
     const handleImportAll = () => {
@@ -63,13 +90,50 @@ const PianoClassesTable = ({ monthIndex }) => {
         e.preventDefault();
         const total = Number(newClass.rate) * Number(newClass.count);
         addPianoClass(monthIndex, { ...newClass, total });
-        setNewClass({ studentName: '', rate: 35000, count: 4, duration: '45 min', status: 'Pendiente' });
+        setNewClass({ studentName: '', rate: 35000, count: 4, duration: '45 min', status: 'Pendiente', family: '' });
         setIsAdding(false);
     };
 
     const toggleStatus = (cls) => {
         const newStatus = cls.status === 'Pendiente' ? 'Al día' : 'Pendiente';
-        const paymentDate = newStatus === 'Al día' ? new Date().toISOString().split('T')[0] : null;
+        let paymentDate = null;
+
+        if (newStatus === 'Al día') {
+            const todayDate = new Date();
+            const dd = String(todayDate.getDate()).padStart(2, '0');
+            const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
+            const yyyy = todayDate.getFullYear();
+            const todayFormatted = `${dd}/${mm}/${yyyy}`;
+
+            const promptedDate = window.prompt("Ingrese la fecha de pago (Formato DD/MM/AAAA):", todayFormatted);
+
+            if (promptedDate === null) {
+                // User cancelled the prompt, do not change status
+                return;
+            }
+
+            // Default to ISO today if empty
+            let finalIsoDate = `${yyyy}-${mm}-${dd}`;
+
+            if (promptedDate.trim() !== '') {
+                // Parse DD/MM/YYYY or DD-MM-YYYY
+                const parts = promptedDate.split(/[\/\-]/);
+                if (parts.length === 3) {
+                    const p1 = parts[0].padStart(2, '0');
+                    const p2 = parts[1].padStart(2, '0');
+                    const p3 = parts[2];
+
+                    if (p3.length === 4) { // DD/MM/AAAA
+                        finalIsoDate = `${p3}-${p2}-${p1}`;
+                    } else if (p1.length === 4) { // AAAA/MM/DD
+                        finalIsoDate = `${p1}-${p2}-${p3}`;
+                    }
+                }
+            }
+
+            paymentDate = finalIsoDate;
+        }
+
         updatePianoClass(monthIndex, cls.id, { status: newStatus, paymentDate });
     };
 
@@ -114,8 +178,8 @@ const PianoClassesTable = ({ monthIndex }) => {
                                                 key={student.id}
                                                 onClick={() => toggleStudentSelection(student.id)}
                                                 className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${selectedStudents.includes(student.id)
-                                                        ? 'bg-indigo-500/20 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.1)]'
-                                                        : 'bg-slate-950/50 border-white/5 hover:bg-white/5'
+                                                    ? 'bg-indigo-500/20 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.1)]'
+                                                    : 'bg-slate-950/50 border-white/5 hover:bg-white/5'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-3">
@@ -260,6 +324,21 @@ const PianoClassesTable = ({ monthIndex }) => {
                                 </select>
                             </div>
                         </div>
+                        <div className="md:col-span-12 grid grid-cols-1 md:grid-cols-4 gap-4 mt-2 mb-2">
+                            <div className="md:col-span-2">
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Agrupación Familiar (Opcional)</label>
+                                <div className="relative">
+                                    <Users className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
+                                    <input
+                                        type="text"
+                                        className="w-full pl-9 px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/30 text-white text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all placeholder:text-slate-600"
+                                        placeholder="Ej: Familia González"
+                                        value={newClass.family}
+                                        onChange={e => setNewClass({ ...newClass, family: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                         <div className="md:col-span-12 flex justify-end">
                             <button
                                 type="submit"
@@ -305,15 +384,70 @@ const PianoClassesTable = ({ monthIndex }) => {
                                 </td>
                             </tr>
                         ) : (
-                            classes.map((cls, idx) => (
-                                <ClassRow
-                                    key={cls.id || idx}
-                                    cls={cls}
-                                    onUpdate={(updates) => updatePianoClass(monthIndex, cls.id, updates)}
-                                    onDelete={() => deletePianoClass(monthIndex, cls.id)}
-                                    onToggleStatus={() => toggleStatus(cls)}
-                                />
-                            ))
+                            <>
+                                {/* Render Families */}
+                                {Object.entries(groupedClasses.groups).map(([familyName, familyMembers]) => {
+                                    const familyTotal = familyMembers.reduce((sum, cls) => sum + Number(cls.total), 0);
+                                    return (
+                                        <React.Fragment key={familyName}>
+                                            <tr className="bg-slate-900/80 border-b border-white/5">
+                                                <td colSpan="2" className="px-8 py-4">
+                                                    <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm uppercase tracking-wider">
+                                                        <Users className="w-5 h-5 text-indigo-400" />
+                                                        {familyName}
+                                                        <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full normal-case tracking-normal">
+                                                            {familyMembers.length} alumnos
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-3 border-l border-white/5 bg-slate-900/50">
+                                                    <div className="flex flex-col items-start gap-1">
+                                                        <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Total Familia</span>
+                                                        <div className="font-bold text-emerald-400 text-base font-mono bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-lg inline-block shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+                                                            ${familyTotal.toLocaleString('es-CL')}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td colSpan="3" className="bg-slate-900/50"></td>
+                                            </tr>
+                                            {familyMembers.map((cls, idx) => (
+                                                <ClassRow
+                                                    key={cls.id || idx}
+                                                    cls={cls}
+                                                    onUpdate={(updates) => updatePianoClass(monthIndex, cls.id, updates)}
+                                                    onDelete={() => deletePianoClass(monthIndex, cls.id)}
+                                                    onToggleStatus={() => toggleStatus(cls)}
+                                                />
+                                            ))}
+                                        </React.Fragment>
+                                    );
+                                })}
+
+                                {/* Render Individual Students */}
+                                {groupedClasses.noFamily.length > 0 && (
+                                    <>
+                                        {Object.keys(groupedClasses.groups).length > 0 && (
+                                            <tr className="bg-slate-900/80 border-b border-white/5">
+                                                <td colSpan="6" className="px-8 py-4">
+                                                    <div className="flex items-center gap-2 text-slate-400 font-bold text-sm uppercase tracking-wider">
+                                                        <User className="w-4 h-4" />
+                                                        Individuales
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                        {groupedClasses.noFamily.map((cls, idx) => (
+                                            <ClassRow
+                                                key={cls.id || idx}
+                                                cls={cls}
+                                                onUpdate={(updates) => updatePianoClass(monthIndex, cls.id, updates)}
+                                                onDelete={() => deletePianoClass(monthIndex, cls.id)}
+                                                onToggleStatus={() => toggleStatus(cls)}
+                                            />
+                                        ))}
+                                    </>
+                                )}
+                            </>
                         )}
                     </tbody>
                 </table>
@@ -329,7 +463,8 @@ const ClassRow = ({ cls, onUpdate, onDelete, onToggleStatus }) => {
         rate: cls.rate,
         count: cls.count,
         duration: cls.duration || '1 hora',
-        paymentDate: cls.paymentDate || ''
+        paymentDate: cls.paymentDate || '',
+        family: cls.family || ''
     });
 
     const handleSave = () => {
@@ -348,7 +483,17 @@ const ClassRow = ({ cls, onUpdate, onDelete, onToggleStatus }) => {
                             value={editData.studentName}
                             onChange={e => setEditData({ ...editData, studentName: e.target.value })}
                             autoFocus
+                            placeholder="Nombre del Alumno"
                         />
+                        <div className="relative">
+                            <Users className="w-3 h-3 absolute left-2 top-2.5 text-slate-500" />
+                            <input
+                                className="w-full pl-7 px-3 py-2 rounded-lg border border-slate-700 bg-slate-900/50 text-white text-xs focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
+                                value={editData.family}
+                                onChange={e => setEditData({ ...editData, family: e.target.value })}
+                                placeholder="Familia (Opcional)"
+                            />
+                        </div>
                         <select
                             className="w-full px-3 py-2 rounded-lg border border-indigo-500/30 bg-slate-950 text-white text-xs outline-none focus:ring-2 focus:ring-indigo-500/50"
                             value={editData.duration}
@@ -437,7 +582,7 @@ const ClassRow = ({ cls, onUpdate, onDelete, onToggleStatus }) => {
             <td className="px-6 py-5">
                 {cls.paymentDate ? (
                     <div className="text-[10px] font-bold font-mono text-slate-400 bg-slate-950/50 px-2.5 py-1 rounded-lg border border-white/5 w-fit">
-                        {cls.paymentDate}
+                        {cls.paymentDate.split('-').reverse().join('/')}
                     </div>
                 ) : (
                     <span className="text-slate-700">-</span>
