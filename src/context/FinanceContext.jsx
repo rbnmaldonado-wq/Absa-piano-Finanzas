@@ -77,47 +77,73 @@ export const FinanceProvider = ({ children }) => {
 
     // Helper to add a generic transaction (income or expense)
     const addTransaction = (monthIndex, type, transaction) => {
-        const updatedMonths = [...data.months];
-        if (type === 'expense') {
-            updatedMonths[monthIndex].expenses.push({ ...transaction, id: Date.now() });
-        } else {
-            updatedMonths[monthIndex].incomes.push({ ...transaction, id: Date.now() });
-        }
+        const updatedMonths = data.months.map((m, idx) => {
+            if (idx === monthIndex) {
+                const newTransaction = { ...transaction, id: Date.now() };
+                return {
+                    ...m,
+                    expenses: type === 'expense' ? [...m.expenses, newTransaction] : m.expenses,
+                    incomes: type === 'income' ? [...m.incomes, newTransaction] : m.incomes
+                };
+            }
+            return m;
+        });
         updateData({ ...data, months: updatedMonths });
     };
 
     // Helper for Piano Classes
     const addPianoClass = (monthIndex, pianoClass) => {
-        const updatedMonths = [...data.months];
-        updatedMonths[monthIndex].pianoClasses.push({ ...pianoClass, id: Date.now() });
+        const updatedMonths = data.months.map((m, idx) => {
+            if (idx === monthIndex) {
+                return {
+                    ...m,
+                    pianoClasses: [...m.pianoClasses, { ...pianoClass, id: Date.now() }]
+                };
+            }
+            return m;
+        });
         updateData({ ...data, months: updatedMonths });
     };
 
     const updatePianoClass = (monthIndex, classId, updatedFields) => {
-        const updatedMonths = [...data.months];
-        const classIndex = updatedMonths[monthIndex].pianoClasses.findIndex(c => c.id === classId);
-        if (classIndex > -1) {
-            updatedMonths[monthIndex].pianoClasses[classIndex] = {
-                ...updatedMonths[monthIndex].pianoClasses[classIndex],
-                ...updatedFields
-            };
-            updateData({ ...data, months: updatedMonths });
-        }
+        const updatedMonths = data.months.map((m, idx) => {
+            if (idx === monthIndex) {
+                return {
+                    ...m,
+                    pianoClasses: m.pianoClasses.map(c =>
+                        c.id === classId ? { ...c, ...updatedFields } : c
+                    )
+                };
+            }
+            return m;
+        });
+        updateData({ ...data, months: updatedMonths });
     };
 
     const deletePianoClass = (monthIndex, classId) => {
-        const updatedMonths = [...data.months];
-        updatedMonths[monthIndex].pianoClasses = updatedMonths[monthIndex].pianoClasses.filter(c => c.id !== classId);
+        const updatedMonths = data.months.map((m, idx) => {
+            if (idx === monthIndex) {
+                return {
+                    ...m,
+                    pianoClasses: m.pianoClasses.filter(c => c.id !== classId)
+                };
+            }
+            return m;
+        });
         updateData({ ...data, months: updatedMonths });
     };
 
     const deleteTransaction = (monthIndex, type, id) => {
-        const updatedMonths = [...data.months];
-        if (type === 'expense') {
-            updatedMonths[monthIndex].expenses = updatedMonths[monthIndex].expenses.filter(t => t.id !== id);
-        } else {
-            updatedMonths[monthIndex].incomes = updatedMonths[monthIndex].incomes.filter(t => t.id !== id);
-        }
+        const updatedMonths = data.months.map((m, idx) => {
+            if (idx === monthIndex) {
+                return {
+                    ...m,
+                    expenses: type === 'expense' ? m.expenses.filter(t => t.id !== id) : m.expenses,
+                    incomes: type === 'income' ? m.incomes.filter(t => t.id !== id) : m.incomes
+                };
+            }
+            return m;
+        });
         updateData({ ...data, months: updatedMonths });
     };
 
@@ -169,22 +195,30 @@ export const FinanceProvider = ({ children }) => {
         const currentMonthClasses = data.months[monthIndex].pianoClasses;
 
         const newClasses = activeStudents
-            .filter(s => !currentMonthClasses.some(c => c.studentId === s.id || c.studentName === s.name)) // Avoid duplicates
+            .filter(s => !currentMonthClasses.some(c => c.studentId === s.id || c.studentName === s.name))
             .map(s => ({
-                id: Date.now() + Math.random(), // Unique ID for the class instance
+                id: Date.now() + Math.random(),
                 studentId: s.id,
                 studentName: s.name,
                 rate: s.defaultRate,
                 duration: s.duration || '1 hora',
-                count: 4, // Default count
+                count: 4,
                 total: Number(s.defaultRate) * 4,
-                status: 'Pendiente'
+                status: 'Pendiente',
+                family: s.family || ''
             }));
 
-        if (newClasses.length === 0) return 0; // No new students to import
+        if (newClasses.length === 0) return 0;
 
-        const updatedMonths = [...data.months];
-        updatedMonths[monthIndex].pianoClasses = [...updatedMonths[monthIndex].pianoClasses, ...newClasses];
+        const updatedMonths = data.months.map((m, idx) => {
+            if (idx === monthIndex) {
+                return {
+                    ...m,
+                    pianoClasses: [...m.pianoClasses, ...newClasses]
+                };
+            }
+            return m;
+        });
         updateData({ ...data, months: updatedMonths });
         return newClasses.length;
     };
@@ -194,7 +228,7 @@ export const FinanceProvider = ({ children }) => {
         const currentMonthClasses = data.months[monthIndex].pianoClasses;
 
         const newClasses = selectedStudents
-            .filter(s => !currentMonthClasses.some(c => c.studentId === s.id || c.studentName === s.name)) // Avoid duplicates
+            .filter(s => !currentMonthClasses.some(c => c.studentId === s.id || c.studentName === s.name))
             .map(s => ({
                 id: Date.now() + Math.random(),
                 studentId: s.id,
@@ -203,13 +237,21 @@ export const FinanceProvider = ({ children }) => {
                 duration: s.duration || '1 hora',
                 count: 4,
                 total: Number(s.defaultRate) * 4,
-                status: 'Pendiente'
+                status: 'Pendiente',
+                family: s.family || ''
             }));
 
         if (newClasses.length === 0) return 0;
 
-        const updatedMonths = [...data.months];
-        updatedMonths[monthIndex].pianoClasses = [...updatedMonths[monthIndex].pianoClasses, ...newClasses];
+        const updatedMonths = data.months.map((m, idx) => {
+            if (idx === monthIndex) {
+                return {
+                    ...m,
+                    pianoClasses: [...m.pianoClasses, ...newClasses]
+                };
+            }
+            return m;
+        });
         updateData({ ...data, months: updatedMonths });
         return newClasses.length;
     };
@@ -236,7 +278,10 @@ export const FinanceProvider = ({ children }) => {
     const addSubcategory = (categoryId, subcategoryName) => {
         const updatedCategories = data.categories.map(cat => {
             if (cat.id === categoryId) {
-                return { ...cat, subcategories: [...(cat.subcategories || []), subcategoryName] };
+                return {
+                    ...cat,
+                    subcategories: [...(cat.subcategories || []), subcategoryName]
+                };
             }
             return cat;
         });
