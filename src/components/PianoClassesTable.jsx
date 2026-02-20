@@ -479,13 +479,29 @@ const ClassRow = ({ cls, onUpdate, onDelete, onToggleStatus }) => {
         rate: cls.rate,
         count: cls.count,
         duration: cls.duration || '1 hora',
-        paymentDate: cls.paymentDate || '',
+        paymentDate: cls.paymentDate ? cls.paymentDate.split('-').reverse().join('/') : '',
         family: cls.family || ''
     });
 
     const handleSave = () => {
         const total = Number(editData.rate) * Number(editData.count);
-        onUpdate({ ...editData, total });
+
+        // Parse DD/MM/AAAA to YYYY-MM-DD
+        let finalIsoDate = null;
+        if (editData.paymentDate && editData.paymentDate.trim() !== '') {
+            const parts = editData.paymentDate.split(/[\/\-\.\s]/);
+            if (parts.length === 3) {
+                let d = parts[0].padStart(2, '0');
+                let m = parts[1].padStart(2, '0');
+                let y = parts[2];
+                if (y.length === 2) y = '20' + y;
+                if (y.length === 4) {
+                    finalIsoDate = `${y}-${m}-${d}`;
+                }
+            }
+        }
+
+        onUpdate({ ...editData, paymentDate: finalIsoDate, total });
         setIsEditing(false);
     };
 
@@ -543,12 +559,16 @@ const ClassRow = ({ cls, onUpdate, onDelete, onToggleStatus }) => {
                     ${(Number(editData.rate) * Number(editData.count)).toLocaleString('es-CL')}
                 </td>
                 <td className="px-6 py-4">
-                    <input
-                        type="date"
-                        className="px-2 py-2 rounded-lg border border-indigo-500/30 bg-slate-950 text-white text-xs outline-none focus:ring-2 focus:ring-indigo-500/50"
-                        value={editData.paymentDate}
-                        onChange={e => setEditData({ ...editData, paymentDate: e.target.value })}
-                    />
+                    <div className="flex flex-col gap-1">
+                        <label className="text-[10px] text-slate-500 uppercase font-bold tracking-tight">Fecha Pago</label>
+                        <input
+                            type="text"
+                            placeholder="DD/MM/AAAA"
+                            className="px-3 py-2 w-36 rounded-lg border border-indigo-500/30 bg-slate-950 text-white text-sm font-mono outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all shadow-inner"
+                            value={editData.paymentDate}
+                            onChange={e => setEditData({ ...editData, paymentDate: e.target.value })}
+                        />
+                    </div>
                 </td>
                 <td className="px-6 py-4">
                     <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest bg-indigo-500/20 px-2 py-1 rounded-full">Editando</span>
