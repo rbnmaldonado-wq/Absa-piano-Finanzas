@@ -17,7 +17,7 @@ const PianoClassesTable = ({ monthIndex }) => {
     const availableStudents = useMemo(() => {
         return allStudents.filter(s =>
             s.active &&
-            !classes.some(c => c.studentId === s.id || c.studentName === s.name)
+            !classes.some(c => c.studentId == s.id || c.studentName === s.name)
         );
     }, [allStudents, classes]);
 
@@ -79,11 +79,11 @@ const PianoClassesTable = ({ monthIndex }) => {
     };
 
     const confirmImportSelection = () => {
-        const count = importSpecificStudents(monthIndex, selectedStudents);
-        if (count > 0) {
-            // alert(`Se importaron ${count} alumnos seleccionados.`);
-            setIsImportModalOpen(false);
+        if (selectedStudents.length > 0) {
+            importSpecificStudents(monthIndex, selectedStudents);
         }
+        setIsImportModalOpen(false);
+        setSelectedStudents([]);
     };
 
     const handleAdd = (e) => {
