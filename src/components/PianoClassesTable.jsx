@@ -163,13 +163,15 @@ const PianoClassesTable = ({ monthIndex }) => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4"
+                        className="fixed inset-0 z-[200] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4"
+                        onClick={() => setIsImportModalOpen(false)}
                     >
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[80%]"
+                            className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+                            onClick={e => e.stopPropagation()}
                         >
                             <div className="p-6 border-b border-white/5 flex justify-between items-center bg-slate-900 sticky top-0 z-10">
                                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
