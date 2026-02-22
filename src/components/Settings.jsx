@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { CreditCard, Wallet, Landmark, Plus, Trash2, Tag, ChevronDown, Check, X, Database, Download, Upload, TriangleAlert, RefreshCw, Edit2 } from 'lucide-react';
+import { CreditCard, Wallet, Landmark, Plus, Trash2, Tag, ChevronDown, Check, X, Database, Download, Upload, TriangleAlert, RefreshCw, Edit2, ShoppingBag, TrendingUp } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -207,12 +207,12 @@ const PaymentMethodsManager = ({ paymentMethods, onAdd, onDelete }) => {
 
 const CategoriesManager = ({ categories, onAddCategory, onAddSubcategory, onUpdateCategory, onDeleteCategory, onDeleteSubcategory }) => {
     const [isAdding, setIsAdding] = useState(false);
-    const [newCat, setNewCat] = useState({ name: '', type: 'expense', color: 'bg-indigo-500' });
+    const [newCat, setNewCat] = useState({ name: '', type: 'expense', color: 'bg-indigo-500', budgetBand: 'estiloVida' });
 
     const handleAdd = (e) => {
         e.preventDefault();
         onAddCategory(newCat);
-        setNewCat({ name: '', type: 'expense', color: 'bg-indigo-500' });
+        setNewCat({ name: '', type: 'expense', color: 'bg-indigo-500', budgetBand: 'estiloVida' });
         setIsAdding(false);
     };
 
@@ -394,9 +394,31 @@ const CategoryCard = ({ category, onAddSubcategory, onUpdateCategory, onDeleteCa
                                 <Edit2 className="w-4 h-4" />
 
                             </button>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-white/5 border border-white/5 px-2.5 py-1 rounded-full ml-auto">
-                                {(category.subcategories || []).length} sub
-                            </span>
+                            {/* Budget Band Toggle */}
+                            <div className="flex items-center gap-1 ml-auto" onClick={e => e.stopPropagation()}>
+                                <button
+                                    onClick={() => onUpdateCategory(category.id, { budgetBand: 'basicos' })}
+                                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${category.budgetBand === 'basicos'
+                                            ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 shadow-[0_0_8px_rgba(99,102,241,0.2)]'
+                                            : 'bg-white/5 text-slate-500 border border-white/5 hover:border-indigo-500/30 hover:text-indigo-400'
+                                        }`}
+                                    title="Gasto Básico (50%)"
+                                >
+                                    <ShoppingBag className="w-3 h-3" />
+                                    Básico
+                                </button>
+                                <button
+                                    onClick={() => onUpdateCategory(category.id, { budgetBand: 'estiloVida' })}
+                                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${category.budgetBand === 'estiloVida' || !category.budgetBand
+                                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-[0_0_8px_rgba(168,85,247,0.2)]'
+                                            : 'bg-white/5 text-slate-500 border border-white/5 hover:border-purple-500/30 hover:text-purple-400'
+                                        }`}
+                                    title="Estilo de Vida (30%)"
+                                >
+                                    <TrendingUp className="w-3 h-3" />
+                                    Estilo
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>

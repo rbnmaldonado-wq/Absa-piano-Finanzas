@@ -5,12 +5,12 @@ export const months = [
 ];
 
 export const initialCategories = [
-    { id: 1, name: "Hogar", color: "bg-blue-500", type: "expense", subcategories: ["Alquiler", "Gastos Comunes", "Mantenimiento"] },
-    { id: 2, name: "Transporte", color: "bg-green-500", type: "expense", subcategories: ["Bencina", "Uber/Taxi", "Transporte Público"] },
-    { id: 3, name: "Familia", color: "bg-yellow-500", type: "expense", subcategories: ["Supermercado", "Restaurante", "Delivery"] },
-    { id: 4, name: "Salud", color: "bg-red-500", type: "expense", subcategories: ["Medicamentos", "Consultas", "Exámenes"] },
-    { id: 5, name: "Educación", color: "bg-purple-500", type: "expense", subcategories: ["Cursos", "Materiales"] },
-    { id: 6, name: "Ocio", color: "bg-pink-500", type: "expense", subcategories: ["Cine", "Salidas", "Streaming"] },
+    { id: 1, name: "Hogar", color: "bg-blue-500", type: "expense", budgetBand: "basicos", subcategories: ["Alquiler", "Gastos Comunes", "Mantenimiento"] },
+    { id: 2, name: "Transporte", color: "bg-green-500", type: "expense", budgetBand: "basicos", subcategories: ["Bencina", "Uber/Taxi", "Transporte Público"] },
+    { id: 3, name: "Familia", color: "bg-yellow-500", type: "expense", budgetBand: "basicos", subcategories: ["Supermercado", "Restaurante", "Delivery"] },
+    { id: 4, name: "Salud", color: "bg-red-500", type: "expense", budgetBand: "basicos", subcategories: ["Medicamentos", "Consultas", "Exámenes"] },
+    { id: 5, name: "Educación", color: "bg-purple-500", type: "expense", budgetBand: "estiloVida", subcategories: ["Cursos", "Materiales"] },
+    { id: 6, name: "Ocio", color: "bg-pink-500", type: "expense", budgetBand: "estiloVida", subcategories: ["Cine", "Salidas", "Streaming"] },
     { id: 7, name: "Clases de Piano", color: "bg-indigo-500", type: "income", subcategories: [] },
     { id: 8, name: "Otros Ingresos", color: "bg-teal-500", type: "income", subcategories: [] },
 ];

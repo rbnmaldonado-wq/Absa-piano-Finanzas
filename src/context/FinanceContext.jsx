@@ -78,6 +78,18 @@ export const FinanceProvider = ({ children }) => {
             updated = true;
         }
 
+        // Migrate: ensure each expense category has a budgetBand
+        if (newData.categories && newData.categories.some(c => c.type === 'expense' && !c.budgetBand)) {
+            const DEFAULT_BASIC_IDS = [1, 2, 3, 4];
+            newData.categories = newData.categories.map(c => {
+                if (c.type === 'expense' && !c.budgetBand) {
+                    return { ...c, budgetBand: DEFAULT_BASIC_IDS.includes(c.id) ? 'basicos' : 'estiloVida' };
+                }
+                return c;
+            });
+            updated = true;
+        }
+
         if (updated) {
             setLocalStorageData(newData);
         }

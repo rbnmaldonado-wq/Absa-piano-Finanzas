@@ -7,10 +7,8 @@ import {
 } from 'recharts';
 import { Target, TrendingUp, PiggyBank, ShoppingBag, AlertTriangle, CheckCircle2, Info } from 'lucide-react';
 
-// Map category IDs to budget bands
-// Básicos (50%): Hogar(1), Transporte(2), Familia/Alimentación(3), Salud(4)
-// Estilo de Vida (30%): Educación(5), Ocio(6), and any other expense category
-const BASIC_CATEGORY_IDS = [1, 2, 3, 4];
+// Budget band is now read from category.budgetBand ('basicos' | 'estiloVida')
+// Configurable per category in Settings
 
 const BAND_CONFIG = {
     basicos: {
@@ -79,7 +77,7 @@ const BudgetChart = ({ monthIndex }) => {
             }
             categoryBreakdown[catId].amount += amount;
 
-            if (BASIC_CATEGORY_IDS.includes(catId)) {
+            if (cat?.budgetBand === 'basicos') {
                 basicosReal += amount;
             } else {
                 estiloVidaReal += amount;
