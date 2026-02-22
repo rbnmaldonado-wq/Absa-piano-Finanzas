@@ -69,9 +69,17 @@ export const FinanceProvider = ({ children }) => {
             updated = true;
         }
 
+        // Migrate: ensure each month has a savings array
+        if (newData.months && newData.months.some(m => !m.savings)) {
+            newData.months = newData.months.map(m => ({
+                ...m,
+                savings: m.savings || []
+            }));
+            updated = true;
+        }
+
         if (updated) {
-            // console.log("Migrating data: added missing fields");
-            setLocalStorageData(newData); // Direct update, don't push to history for migration
+            setLocalStorageData(newData);
         }
     }, [data.categories, data.paymentMethods, data.schedule, data.brandSettings]);
 
@@ -391,6 +399,48 @@ export const FinanceProvider = ({ children }) => {
         updateData({ ...data, schedule: updatedSchedule });
     };
 
+    // Savings Methods
+    const addSaving = (monthIndex, saving) => {
+        const updatedMonths = data.months.map((m, idx) => {
+            if (idx === monthIndex) {
+                return {
+                    ...m,
+                    savings: [...(m.savings || []), { ...saving, id: Date.now() }]
+                };
+            }
+            return m;
+        });
+        updateData({ ...data, months: updatedMonths });
+    };
+
+    const updateSaving = (monthIndex, savingId, updatedFields) => {
+        const updatedMonths = data.months.map((m, idx) => {
+            if (idx === monthIndex) {
+                return {
+                    ...m,
+                    savings: (m.savings || []).map(s =>
+                        s.id === savingId ? { ...s, ...updatedFields } : s
+                    )
+                };
+            }
+            return m;
+        });
+        updateData({ ...data, months: updatedMonths });
+    };
+
+    const deleteSaving = (monthIndex, savingId) => {
+        const updatedMonths = data.months.map((m, idx) => {
+            if (idx === monthIndex) {
+                return {
+                    ...m,
+                    savings: (m.savings || []).filter(s => s.id !== savingId)
+                };
+            }
+            return m;
+        });
+        updateData({ ...data, months: updatedMonths });
+    };
+
     const updateBrandSettings = (updatedFields) => {
         updateData({
             ...data,
@@ -456,7 +506,10 @@ export const FinanceProvider = ({ children }) => {
         loadData,
         startNewYear,
         importTransactionsFromPreviousMonth,
-        updateTransaction
+        updateTransaction,
+        addSaving,
+        updateSaving,
+        deleteSaving
     };
 
     return (

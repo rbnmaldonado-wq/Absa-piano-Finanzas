@@ -1,0 +1,1472 @@
+{
+  "year": 2026,
+  "categories": [
+    {
+      "id": 1,
+      "name": "Hogar",
+      "color": "bg-blue-500",
+      "type": "expense",
+      "subcategories": [
+        "Dividendo",
+        "Luz",
+        "Agua",
+        "Gas",
+        "Internet",
+        "Supermercado",
+        "Mantención"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Transporte",
+      "color": "bg-green-500",
+      "type": "expense",
+      "subcategories": [
+        "Bencina",
+        "Tag",
+        "Seguro Auto",
+        "Mantención",
+        "Permiso de circulación"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Familia",
+      "color": "bg-yellow-500",
+      "type": "expense",
+      "subcategories": [
+        "Ropa",
+        "Actividades",
+        "Mesada Esposa"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Salud",
+      "color": "bg-red-500",
+      "type": "expense",
+      "subcategories": [
+        "Seguro Salud",
+        "Medicamentos",
+        "Exámenes"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Educación",
+      "color": "bg-purple-500",
+      "type": "expense",
+      "subcategories": [
+        "Colegio",
+        "Útiles escolares",
+        "Talleres"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Ocio",
+      "color": "bg-pink-500",
+      "type": "expense",
+      "subcategories": [
+        "Cine",
+        "Salidas",
+        "Streaming",
+        "Delivery's"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Clases de Piano",
+      "color": "bg-indigo-500",
+      "type": "income",
+      "subcategories": []
+    },
+    {
+      "id": 8,
+      "name": "Otros Ingresos",
+      "color": "bg-teal-500",
+      "type": "income",
+      "subcategories": []
+    }
+  ],
+  "paymentMethods": [
+    {
+      "id": 1,
+      "name": "Efectivo",
+      "type": "cash",
+      "color": "bg-emerald-500"
+    },
+    {
+      "name": "CMR Elite Falabella",
+      "type": "credit",
+      "color": "bg-slate-500",
+      "id": 1771461176258
+    },
+    {
+      "name": "Lider/Bci",
+      "type": "credit",
+      "color": "bg-blue-500",
+      "id": 1771461197095
+    },
+    {
+      "name": "Itaú",
+      "type": "credit",
+      "color": "bg-orange-500",
+      "id": 1771461221530
+    }
+  ],
+  "studentDb": [
+    {
+      "name": "Agustina Díaz",
+      "fullName": "Carolina",
+      "address": "Las Violetas 2152, dpto 704",
+      "phone": "",
+      "email": "",
+      "defaultRate": 35000,
+      "id": 1771379652558,
+      "active": true,
+      "rut": "",
+      "duration": "30 min",
+      "family": ""
+    },
+    {
+      "name": "Florencia Villar",
+      "fullName": "Leonardo Villar Castillo",
+      "address": "Las violetas 2152, dpto 504, Providencia",
+      "phone": "",
+      "email": "leovillarcastillo@gmail.com",
+      "defaultRate": "38000",
+      "id": 1771380043102,
+      "active": true,
+      "rut": "",
+      "duration": "45 min",
+      "family": ""
+    },
+    {
+      "name": "Lucas Inostroza",
+      "fullName": "María José",
+      "address": "Holanda 3053, dpto 402, Ñuñoa",
+      "rut": "13882760-7",
+      "email": "mariajose01208@gmail.com",
+      "defaultRate": "34000",
+      "id": 1771381431228,
+      "active": true,
+      "duration": "30 min",
+      "family": "Familia Inostroza"
+    },
+    {
+      "name": "Borja Inostroza",
+      "fullName": "María José",
+      "address": "Holanda 3053, dpto 402, Ñuñoa",
+      "rut": "13882760-7",
+      "email": "mariajose01208@gmail.com",
+      "defaultRate": "31000",
+      "id": 1771381501713,
+      "active": true,
+      "duration": "20 min",
+      "family": "Familia Inostroza"
+    },
+    {
+      "name": "Domingo Jiménez",
+      "fullName": "Pola",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "38000",
+      "id": 1771381588948,
+      "active": true,
+      "duration": "45 min",
+      "family": ""
+    },
+    {
+      "name": "Constanza Covarrubias",
+      "fullName": "Constanza Covarrubias",
+      "address": "Cuatro Oriente 2269, Peñalolén",
+      "rut": "10678144-3",
+      "email": "constanza.covarrubias@gmail.com",
+      "defaultRate": "38000",
+      "id": 1771381690096,
+      "active": true
+    },
+    {
+      "name": "Javier Abud",
+      "fullName": "Alejandra",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "38000",
+      "id": 1771381809846,
+      "active": true,
+      "duration": "30 min",
+      "family": ""
+    },
+    {
+      "name": "Pelayo Pizarro",
+      "fullName": "Constanza",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "41000",
+      "id": 1771450491677,
+      "active": true,
+      "duration": "45 min",
+      "family": ""
+    },
+    {
+      "name": "Aurora Pizarro",
+      "fullName": "Constanza",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "41000",
+      "id": 1771450534525,
+      "active": true,
+      "duration": "45 min",
+      "family": ""
+    },
+    {
+      "name": "Otra hija Pizarro",
+      "fullName": "Constanza",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": 35000,
+      "id": 1771450548719,
+      "active": true,
+      "duration": "45 min",
+      "family": ""
+    },
+    {
+      "name": "Elisa Marina",
+      "fullName": "Marcela",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "41000",
+      "id": 1771450577145,
+      "active": true,
+      "duration": "45 min",
+      "family": ""
+    },
+    {
+      "name": "Bautista Mina",
+      "fullName": "Fernanda",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "39000",
+      "id": 1771450603713,
+      "active": true,
+      "duration": "45 min",
+      "family": ""
+    },
+    {
+      "name": "Jacinta Ricapito",
+      "fullName": "Claudia DaBove",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "38000",
+      "id": 1771450827738,
+      "active": true,
+      "duration": "45 min",
+      "family": ""
+    },
+    {
+      "name": "Luis Arteaga",
+      "fullName": "Luis Arteaga",
+      "address": "Martín de Zamora",
+      "rut": "",
+      "email": "",
+      "defaultRate": "41000",
+      "id": 1771450995053,
+      "active": true,
+      "duration": "45 min",
+      "family": "Familia Arteaga"
+    },
+    {
+      "name": "Josefa Arteaga",
+      "fullName": "Luis Arteaga",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "20000",
+      "id": 1771451013125,
+      "active": true,
+      "duration": "30 min",
+      "family": "Familia Arteaga"
+    },
+    {
+      "name": "Lucas Arteaga",
+      "fullName": "Luis Arteaga",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "20000",
+      "id": 1771451031951,
+      "active": true,
+      "duration": "30 min",
+      "family": "Familia Arteaga"
+    },
+    {
+      "name": "Olivia Arteaga",
+      "fullName": "Luis Arteaga",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "20000",
+      "id": 1771451042103,
+      "active": true,
+      "duration": "30 min",
+      "family": "Familia Arteaga"
+    },
+    {
+      "name": "Diego Schaale",
+      "fullName": "Phillip Jan Schaale Simpferndorfer",
+      "address": "Almirante Acevedo 4841, Vitacura",
+      "rut": "14376297-1",
+      "email": "",
+      "defaultRate": 35000,
+      "id": 1771451643819,
+      "active": true,
+      "duration": "45 min",
+      "family": "Familia Schaale"
+    },
+    {
+      "name": "Clarisa Schaale",
+      "fullName": "Phillip Jan Schaale Simpferndorfer",
+      "address": "Almirante Acevedo 4841, Vitacura",
+      "rut": "14376297-1",
+      "email": "",
+      "defaultRate": 35000,
+      "id": 1771451671815,
+      "active": true,
+      "duration": "45 min",
+      "family": "Familia Schaale"
+    },
+    {
+      "name": "León Schaale",
+      "fullName": "Phillip Jan Schaale Simpferndorfer",
+      "address": "Almirante Acevedo 4841, Vitacura",
+      "rut": "14376297-1",
+      "email": "",
+      "defaultRate": 35000,
+      "id": 1771451690958,
+      "active": true,
+      "duration": "45 min",
+      "family": "Familia Schaale"
+    },
+    {
+      "name": "Agustín Walton",
+      "fullName": "Jorge Ignacio Walton Giles ",
+      "address": "La Llavería 1890, Vitacura",
+      "rut": "10963942-7",
+      "email": "",
+      "defaultRate": "34500",
+      "id": 1771452905798,
+      "active": true,
+      "duration": "45 min",
+      "family": "Familia Walton"
+    },
+    {
+      "name": "Tomás Walton",
+      "fullName": "Jorge Ignacio Walton Giles ",
+      "address": "La Llavería 1890, Vitacura",
+      "rut": "10963942-7",
+      "email": "",
+      "defaultRate": "34500",
+      "id": 1771452934372,
+      "active": true,
+      "duration": "45 min",
+      "family": "Familia Walton"
+    },
+    {
+      "name": "Reginne Ruso",
+      "fullName": "Reginne Ruso",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "38000",
+      "id": 1771452979440,
+      "active": true,
+      "duration": "45 min",
+      "family": ""
+    },
+    {
+      "name": "Andrea Novoa",
+      "fullName": "Andrea Novoa",
+      "address": "María Cruz Antunez 1331, Vitacura",
+      "rut": "12124732-1",
+      "email": "",
+      "defaultRate": "38000",
+      "id": 1771453033275,
+      "active": true,
+      "duration": "1 hora",
+      "family": ""
+    },
+    {
+      "name": "Matías Zimmerman",
+      "fullName": "Claudia Yael Trewik Burle",
+      "address": "Rungue 106, Las Condes",
+      "rut": "9250674-6",
+      "email": "",
+      "defaultRate": "39000",
+      "id": 1771453131019,
+      "active": true,
+      "duration": "1 hora",
+      "family": ""
+    },
+    {
+      "name": "José Francisco Winter",
+      "fullName": "José Francisco Winter",
+      "address": "",
+      "rut": "13335564-2",
+      "email": "josefcowr@gmail.com",
+      "defaultRate": "41000",
+      "id": 1771453166233,
+      "active": true
+    },
+    {
+      "name": "Josefina Moro",
+      "fullName": "Felipe Moro Vargas",
+      "address": "Camino Gino Girardi 2170 casa 2, Lo Barnechea",
+      "rut": "8862661-3",
+      "email": "felmovar@gmail.com",
+      "defaultRate": "39000",
+      "id": 1771453267717,
+      "active": true,
+      "duration": "45 min",
+      "family": "Familia Moro"
+    },
+    {
+      "name": "Pedro Moro",
+      "fullName": "Felipe Moro Vargas",
+      "address": "Camino Gino Girardi 2170 casa 2, Lo Barnechea",
+      "rut": "8862661-3",
+      "email": "felmovar@gmail.com",
+      "defaultRate": 35000,
+      "id": 1771453295122,
+      "active": true,
+      "duration": "30 min",
+      "family": "Familia Moro"
+    },
+    {
+      "name": "Franco Colonna",
+      "fullName": "Constanza ",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "48200",
+      "id": 1771453340042,
+      "active": true,
+      "duration": "45 min",
+      "family": ""
+    },
+    {
+      "name": "Elisa Reyes",
+      "fullName": "Juan Francisco Reyes",
+      "address": "Las Torcazas 150, dpto 201, Las Condes",
+      "rut": "13829167-7",
+      "email": "jfreyes@scr.cl",
+      "defaultRate": 35000,
+      "id": 1771459714550,
+      "active": true,
+      "duration": "30 min",
+      "family": "Familia Reyes Arata"
+    },
+    {
+      "name": "Constanza Contreras",
+      "fullName": "Juan Francisco Pablo Reyes Taha",
+      "address": "Las Torcazas 150, dpto 201, Las Condes",
+      "rut": "13829167-7",
+      "email": "jfreyes@scr.cl",
+      "defaultRate": "39000",
+      "id": 1771459829174,
+      "active": true,
+      "duration": "45 min",
+      "family": "Familia Reyes Arata"
+    },
+    {
+      "name": "Olivia Arata",
+      "fullName": "Juan Francisco Pablo Reyes Taha",
+      "address": "Las Torcazas 150, dpto 201, Las Condes",
+      "rut": "13829167-7",
+      "email": "jfreyes@scr.cl",
+      "defaultRate": "38000",
+      "id": 1771459947878,
+      "active": true,
+      "duration": "45 min",
+      "family": "Familia Reyes Arata"
+    },
+    {
+      "name": "Antonia Arata",
+      "fullName": "Juan Francisco Pablo Reyes Taha",
+      "address": "Las Torcazas 150, dpto 201, Las Condes",
+      "rut": "13829167-7",
+      "email": "jfreyes@scr.cl",
+      "defaultRate": "39000",
+      "id": 1771460080834,
+      "active": true,
+      "duration": "45 min",
+      "family": "Familia Reyes Arata"
+    },
+    {
+      "name": "Javier Ocaranza",
+      "fullName": "Javier Ocaranza",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "35000",
+      "id": 1771460232714,
+      "active": true,
+      "duration": "45 min",
+      "family": "Familia Ocaranza"
+    },
+    {
+      "name": "Antonia Ocaranza",
+      "fullName": "Javier Ocaranza",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": 35000,
+      "id": 1771460253477,
+      "active": true,
+      "duration": "45 min",
+      "family": "Familia Ocaranza"
+    },
+    {
+      "name": "Hnos Hunneus",
+      "fullName": "",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "115000",
+      "id": 1771460398958,
+      "active": true
+    },
+    {
+      "name": "Diego Urbina",
+      "fullName": "",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "41000",
+      "id": 1771460443671,
+      "active": true,
+      "duration": "45 min",
+      "family": ""
+    },
+    {
+      "name": "Franco Justiniano",
+      "fullName": "Nicolás Justiniano",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "41000",
+      "id": 1771460467036,
+      "active": true,
+      "duration": "45 min",
+      "family": ""
+    },
+    {
+      "name": "Valentina Williamson",
+      "fullName": "Valkentina Williamson",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "43000",
+      "id": 1771460637796,
+      "active": true
+    },
+    {
+      "name": "Cristian Lira",
+      "fullName": "Cristian Lira",
+      "address": "Las Tranqueras",
+      "rut": "",
+      "email": "",
+      "defaultRate": "46000",
+      "id": 1771460728256,
+      "active": true
+    },
+    {
+      "name": "Luciano Socias",
+      "fullName": "Gonzalo Socias",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "41000",
+      "id": 1771460850228,
+      "active": true,
+      "duration": "45 min",
+      "family": ""
+    },
+    {
+      "name": "Mellis Ocaranza",
+      "fullName": "Javier Ocaranza",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": 35000,
+      "duration": "45 min",
+      "family": "Familia Ocaranza",
+      "id": 1771542683855,
+      "active": true
+    },
+    {
+      "name": "Alicia Lorca",
+      "fullName": "Alicia García Huidobro",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "41000",
+      "duration": "45 min",
+      "family": "Rosario y Alicia",
+      "id": 1771628808682,
+      "active": true
+    },
+    {
+      "name": "Rosario García Huidobro",
+      "fullName": "Rosario García Huidobro",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "41000",
+      "duration": "45 min",
+      "family": "Rosario y Alicia",
+      "id": 1771628849301,
+      "active": true
+    },
+    {
+      "name": "Ignacia Yévenes",
+      "fullName": "Fernando Yévenes",
+      "address": "",
+      "rut": "",
+      "email": "",
+      "defaultRate": "41000",
+      "duration": "45 min",
+      "family": "",
+      "id": 1771630748712,
+      "active": true
+    }
+  ],
+  "months": [
+    {
+      "name": "Enero",
+      "pianoClasses": [
+        {
+          "id": 1771460881715.4592,
+          "studentId": 1771381588948,
+          "studentName": "Domingo Jiménez",
+          "rate": "38000",
+          "count": 4,
+          "total": 152000,
+          "status": "Al día",
+          "duration": "45 min",
+          "paymentDate": "2026-01-05",
+          "family": ""
+        },
+        {
+          "id": 1771460881715.5242,
+          "studentId": 1771381809846,
+          "studentName": "Javier Abud",
+          "rate": "34000",
+          "count": "2",
+          "total": 68000,
+          "status": "Al día",
+          "duration": "30 min",
+          "paymentDate": "2026-02-19"
+        },
+        {
+          "id": 1771460881715.9219,
+          "studentId": 1771450603713,
+          "studentName": "Bautista Mina",
+          "rate": "38000",
+          "count": "3",
+          "total": 114000,
+          "status": "Al día",
+          "paymentDate": "2026-02-20",
+          "duration": "45 min",
+          "family": ""
+        },
+        {
+          "id": 1771460881715.5725,
+          "studentId": 1771450995053,
+          "studentName": "Luis Arteaga",
+          "rate": "41000",
+          "count": 4,
+          "total": 164000,
+          "status": "Al día",
+          "paymentDate": "2026-02-20",
+          "duration": "45 min",
+          "family": ""
+        },
+        {
+          "id": 1771460881715.212,
+          "studentId": 1771451013125,
+          "studentName": "Josefa Arteaga",
+          "rate": "20000",
+          "count": 4,
+          "total": 80000,
+          "status": "Al día",
+          "paymentDate": "2026-02-20",
+          "duration": "30 min",
+          "family": ""
+        },
+        {
+          "id": 1771460881715.7166,
+          "studentId": 1771451031951,
+          "studentName": "Lucas Arteaga",
+          "rate": "20000",
+          "count": 4,
+          "total": 80000,
+          "status": "Al día",
+          "paymentDate": "2026-02-20",
+          "duration": "30 min",
+          "family": ""
+        },
+        {
+          "id": 1771460881715.8252,
+          "studentId": 1771451042103,
+          "studentName": "Olivia Arteaga",
+          "rate": "20000",
+          "count": 4,
+          "total": 80000,
+          "status": "Al día",
+          "paymentDate": "2026-02-20",
+          "duration": "30 min",
+          "family": ""
+        },
+        {
+          "id": 1771460881715.7114,
+          "studentId": 1771452979440,
+          "studentName": "Reginne Ruso",
+          "rate": "38000",
+          "count": 4,
+          "total": 152000,
+          "status": "Al día",
+          "paymentDate": "2026-02-20",
+          "duration": "45 min",
+          "family": ""
+        },
+        {
+          "id": 1771460881715.3174,
+          "studentId": 1771453033275,
+          "studentName": "Andrea Novoa",
+          "rate": "38000",
+          "count": "2",
+          "total": 76000,
+          "status": "Al día",
+          "duration": "1 hora",
+          "paymentDate": "2026-02-20"
+        },
+        {
+          "id": 1771460881715.548,
+          "studentId": 1771453131019,
+          "studentName": "Matías Zimmerman",
+          "rate": "39000",
+          "count": 4,
+          "total": 156000,
+          "status": "Al día",
+          "paymentDate": "2026-02-20",
+          "duration": "1 hora"
+        },
+        {
+          "id": 1771460881715.139,
+          "studentId": 1771453166233,
+          "studentName": "José Francisco Winter",
+          "rate": "41000",
+          "count": 4,
+          "total": 164000,
+          "status": "Al día",
+          "paymentDate": "2026-01-06",
+          "duration": "1 hora",
+          "family": ""
+        },
+        {
+          "id": 1771460881715.6504,
+          "studentId": 1771453340042,
+          "studentName": "Franco Colonna",
+          "rate": "48700",
+          "count": 4,
+          "total": 194800,
+          "status": "Al día",
+          "duration": "45 min",
+          "paymentDate": "2026-02-20",
+          "family": ""
+        },
+        {
+          "id": 1771460881715.891,
+          "studentId": 1771460232714,
+          "studentName": "Javier Ocaranza",
+          "rate": "35000",
+          "count": 4,
+          "total": 140000,
+          "status": "Al día",
+          "paymentDate": "2026-01-20",
+          "duration": "45 min",
+          "family": ""
+        },
+        {
+          "id": 1771460881715.0388,
+          "studentId": 1771460244930,
+          "studentName": "Mellis Ocaranza",
+          "rate": 35000,
+          "count": 4,
+          "total": 140000,
+          "status": "Al día",
+          "paymentDate": "2026-02-20",
+          "duration": "45 min",
+          "family": ""
+        },
+        {
+          "id": 1771460881715.1123,
+          "studentId": 1771460253477,
+          "studentName": "Antonia Ocaranza",
+          "rate": 35000,
+          "count": 4,
+          "total": 140000,
+          "status": "Al día",
+          "paymentDate": "2026-02-20",
+          "duration": "45 min",
+          "family": ""
+        },
+        {
+          "id": 1771460881715.9355,
+          "studentId": 1771460443671,
+          "studentName": "Diego Urbina",
+          "rate": "41000",
+          "count": 4,
+          "total": 164000,
+          "status": "Al día",
+          "duration": "45 min",
+          "paymentDate": "2026-01-05",
+          "family": ""
+        },
+        {
+          "id": 1771460881715.963,
+          "studentId": 1771460467036,
+          "studentName": "Franco Justiniano",
+          "rate": "41000",
+          "count": 4,
+          "total": 164000,
+          "status": "Al día",
+          "paymentDate": "2026-02-20",
+          "duration": "45 min",
+          "family": ""
+        },
+        {
+          "id": 1771460881715.1636,
+          "studentId": 1771460637796,
+          "studentName": "Valentina Williamson",
+          "rate": "43000",
+          "count": 4,
+          "total": 172000,
+          "status": "Al día",
+          "paymentDate": "2026-02-20"
+        }
+      ],
+      "expenses": [],
+      "incomes": [
+        {
+          "description": "Arriendo casa Buin",
+          "amount": "710000",
+          "categoryId": "8",
+          "subcategory": "",
+          "paymentMethodId": "",
+          "date": "2026-02-19",
+          "id": 1771460986802
+        },
+        {
+          "description": "Arriendo Cabaña El Tabo",
+          "amount": "150000",
+          "categoryId": "8",
+          "subcategory": "",
+          "paymentMethodId": "",
+          "date": "2026-02-19",
+          "id": 1771461007000
+        }
+      ]
+    },
+    {
+      "name": "Febrero",
+      "pianoClasses": [
+        {
+          "id": 1771626715631.2942,
+          "studentId": 1771450995053,
+          "studentName": "Luis Arteaga",
+          "rate": "41000",
+          "duration": "45 min",
+          "count": "1",
+          "total": 41000,
+          "status": "Al día",
+          "family": "Familia Arteaga",
+          "paymentDate": "2026-02-20"
+        },
+        {
+          "id": 1771626715631.1013,
+          "studentId": 1771452905798,
+          "studentName": "Agustín Walton",
+          "rate": "34500",
+          "duration": "45 min",
+          "count": 4,
+          "total": 138000,
+          "status": "Al día",
+          "family": "Familia Walton",
+          "paymentDate": "2026-02-20"
+        },
+        {
+          "id": 1771626715631.8032,
+          "studentId": 1771452934372,
+          "studentName": "Tomás Walton",
+          "rate": "34500",
+          "duration": "45 min",
+          "count": 4,
+          "total": 138000,
+          "status": "Al día",
+          "family": "Familia Walton",
+          "paymentDate": "2026-02-20"
+        },
+        {
+          "id": 1771626715631.0498,
+          "studentId": 1771452979440,
+          "studentName": "Reginne Ruso",
+          "rate": "38000",
+          "duration": "45 min",
+          "count": "3",
+          "total": 114000,
+          "status": "Pendiente",
+          "family": "",
+          "paymentDate": null
+        },
+        {
+          "id": 1771626715631.938,
+          "studentId": 1771453131019,
+          "studentName": "Matías Zimmerman",
+          "rate": "39000",
+          "duration": "1 hora",
+          "count": 4,
+          "total": 156000,
+          "status": "Al día",
+          "family": "",
+          "paymentDate": "2026-02-20"
+        },
+        {
+          "id": 1771626715631.7146,
+          "studentId": 1771453166233,
+          "studentName": "José Francisco Winter",
+          "rate": "41000",
+          "duration": "1 hora",
+          "count": 4,
+          "total": 164000,
+          "status": "Al día",
+          "family": "",
+          "paymentDate": "2026-02-20"
+        },
+        {
+          "id": 1771626715631.871,
+          "studentId": 1771453340042,
+          "studentName": "Franco Colonna",
+          "rate": "48200",
+          "duration": "45 min",
+          "count": "5",
+          "total": 241000,
+          "status": "Al día",
+          "family": "",
+          "paymentDate": null
+        },
+        {
+          "id": 1771626715631.2004,
+          "studentId": 1771460232714,
+          "studentName": "Javier Ocaranza",
+          "rate": "35000",
+          "duration": "45 min",
+          "count": 4,
+          "total": 140000,
+          "status": "Al día",
+          "family": "Familia Ocaranza",
+          "paymentDate": "2026-02-20"
+        },
+        {
+          "id": 1771626715631.6252,
+          "studentId": 1771460253477,
+          "studentName": "Antonia Ocaranza",
+          "rate": 35000,
+          "duration": "45 min",
+          "count": 4,
+          "total": 140000,
+          "status": "Al día",
+          "family": "Familia Ocaranza",
+          "paymentDate": "2026-02-20"
+        },
+        {
+          "id": 1771626715631.84,
+          "studentId": 1771460443671,
+          "studentName": "Diego Urbina",
+          "rate": "41000",
+          "duration": "45 min",
+          "count": 4,
+          "total": 164000,
+          "status": "Al día",
+          "family": "",
+          "paymentDate": "2026-02-20"
+        },
+        {
+          "id": 1771626715631.2668,
+          "studentId": 1771460467036,
+          "studentName": "Franco Justiniano",
+          "rate": "41000",
+          "duration": "45 min",
+          "count": "3",
+          "total": 123000,
+          "status": "Al día",
+          "family": "",
+          "paymentDate": "2026-02-20"
+        },
+        {
+          "id": 1771626715631.412,
+          "studentId": 1771460637796,
+          "studentName": "Valentina Williamson",
+          "rate": "43000",
+          "duration": "1 hora",
+          "count": 4,
+          "total": 172000,
+          "status": "Al día",
+          "family": "",
+          "paymentDate": "2026-02-20"
+        },
+        {
+          "id": 1771626715631.2139,
+          "studentId": 1771460728256,
+          "studentName": "Cristian Lira",
+          "rate": "46000",
+          "duration": "1 hora",
+          "count": "2",
+          "total": 92000,
+          "status": "Al día",
+          "family": "",
+          "paymentDate": null
+        },
+        {
+          "id": 1771626715631.1821,
+          "studentId": 1771460850228,
+          "studentName": "Luciano Socias",
+          "rate": "41000",
+          "duration": "45 min",
+          "count": 4,
+          "total": 164000,
+          "status": "Al día",
+          "family": "",
+          "paymentDate": "2026-02-20"
+        },
+        {
+          "id": 1771626715631.4224,
+          "studentId": 1771542683855,
+          "studentName": "Mellis Ocaranza",
+          "rate": 35000,
+          "duration": "45 min",
+          "count": 4,
+          "total": 140000,
+          "status": "Al día",
+          "family": "Familia Ocaranza",
+          "paymentDate": "2026-02-20"
+        }
+      ],
+      "expenses": [],
+      "incomes": []
+    },
+    {
+      "name": "Marzo",
+      "pianoClasses": [],
+      "expenses": [],
+      "incomes": []
+    },
+    {
+      "name": "Abril",
+      "pianoClasses": [],
+      "expenses": [],
+      "incomes": []
+    },
+    {
+      "name": "Mayo",
+      "pianoClasses": [],
+      "expenses": [],
+      "incomes": []
+    },
+    {
+      "name": "Junio",
+      "pianoClasses": [],
+      "expenses": [],
+      "incomes": []
+    },
+    {
+      "name": "Julio",
+      "pianoClasses": [],
+      "expenses": [],
+      "incomes": []
+    },
+    {
+      "name": "Agosto",
+      "pianoClasses": [],
+      "expenses": [],
+      "incomes": []
+    },
+    {
+      "name": "Septiembre",
+      "pianoClasses": [],
+      "expenses": [],
+      "incomes": []
+    },
+    {
+      "name": "Octubre",
+      "pianoClasses": [],
+      "expenses": [],
+      "incomes": []
+    },
+    {
+      "name": "Noviembre",
+      "pianoClasses": [],
+      "expenses": [],
+      "incomes": []
+    },
+    {
+      "name": "Diciembre",
+      "pianoClasses": [],
+      "expenses": [],
+      "incomes": []
+    }
+  ],
+  "schedule": [
+    {
+      "day": "Lunes",
+      "time": "11:00",
+      "studentId": "1771460637796",
+      "studentName": "Valentina Williamson",
+      "duration": "1 hora",
+      "id": 1771627267166
+    },
+    {
+      "day": "Lunes",
+      "time": "15:30",
+      "studentId": "1771379652558",
+      "studentName": "Agustina Díaz",
+      "duration": "30 min",
+      "id": 1771627284575
+    },
+    {
+      "day": "Lunes",
+      "time": "16:00",
+      "studentId": "1771380043102",
+      "studentName": "Florencia Villar",
+      "duration": "45 min",
+      "id": 1771627297662
+    },
+    {
+      "day": "Lunes",
+      "time": "17:00",
+      "studentId": "1771381431228",
+      "studentName": "Lucas Inostroza",
+      "duration": "30 min",
+      "id": 1771627318929
+    },
+    {
+      "day": "Lunes",
+      "time": "17:30",
+      "studentId": "1771381501713",
+      "studentName": "Borja Inostroza",
+      "duration": "20 min",
+      "id": 1771627330967
+    },
+    {
+      "day": "Lunes",
+      "time": "18:15",
+      "studentId": "1771381588948",
+      "studentName": "Domingo Jiménez",
+      "duration": "45 min",
+      "id": 1771628717440
+    },
+    {
+      "day": "Lunes",
+      "time": "19:15",
+      "studentId": "1771628808682",
+      "studentName": "Alicia Lorca",
+      "duration": "45 min",
+      "id": 1771628907036
+    },
+    {
+      "day": "Lunes",
+      "time": "20:00",
+      "studentId": "1771628849301",
+      "studentName": "Rosario García Huidobro",
+      "duration": "45 min",
+      "id": 1771628930047
+    },
+    {
+      "day": "Martes",
+      "time": "11:00",
+      "studentId": "1771381690096",
+      "studentName": "Constanza Covarrubias",
+      "duration": "1 hora",
+      "id": 1771629024719
+    },
+    {
+      "day": "Martes",
+      "time": "14:00",
+      "studentId": "1771381809846",
+      "studentName": "Javier Abud",
+      "duration": "30 min",
+      "id": 1771629050904
+    },
+    {
+      "day": "Martes",
+      "time": "15:00",
+      "studentId": "1771450491677",
+      "studentName": "Pelayo Pizarro",
+      "duration": "45 min",
+      "id": 1771629071548
+    },
+    {
+      "day": "Martes",
+      "time": "16:00",
+      "studentId": "1771450577145",
+      "studentName": "Elisa Marina",
+      "duration": "45 min",
+      "id": 1771629087241
+    },
+    {
+      "day": "Martes",
+      "time": "17:00",
+      "studentId": "1771450603713",
+      "studentName": "Bautista Mina",
+      "duration": "45 min",
+      "id": 1771629100743
+    },
+    {
+      "day": "Martes",
+      "time": "18:15",
+      "studentId": "1771450827738",
+      "studentName": "Jacinta Ricapito",
+      "duration": "45 min",
+      "id": 1771629124184
+    },
+    {
+      "day": "Martes",
+      "time": "19:30",
+      "studentId": "1771451013125",
+      "studentName": "Josefa Arteaga",
+      "duration": "30 min",
+      "id": 1771629164920
+    },
+    {
+      "day": "Martes",
+      "time": "20:00",
+      "studentId": "1771451031951",
+      "studentName": "Lucas Arteaga",
+      "duration": "30 min",
+      "id": 1771629202470
+    },
+    {
+      "day": "Martes",
+      "time": "20:30",
+      "studentId": "1771451042103",
+      "studentName": "Olivia Arteaga",
+      "duration": "30 min",
+      "id": 1771629262879
+    },
+    {
+      "day": "Martes",
+      "time": "21:00",
+      "studentId": "1771450995053",
+      "studentName": "Luis Arteaga",
+      "duration": "45 min",
+      "id": 1771629283638
+    },
+    {
+      "day": "Miércoles",
+      "time": "12:00",
+      "studentId": "1771453131019",
+      "studentName": "Matías Zimmerman",
+      "duration": "1 hora",
+      "id": 1771630372390
+    },
+    {
+      "day": "Miércoles",
+      "time": "14:30",
+      "studentId": "1771451643819",
+      "studentName": "Diego Schaale",
+      "duration": "45 min",
+      "id": 1771630387688
+    },
+    {
+      "day": "Miércoles",
+      "time": "15:15",
+      "studentId": "1771451671815",
+      "studentName": "Clarisa Schaale",
+      "duration": "45 min",
+      "id": 1771630400620
+    },
+    {
+      "day": "Miércoles",
+      "time": "16:00",
+      "studentId": "1771451690958",
+      "studentName": "León Schaale",
+      "duration": "45 min",
+      "id": 1771630414973
+    },
+    {
+      "day": "Miércoles",
+      "time": "17:15",
+      "studentId": "1771452905798",
+      "studentName": "Agustín Walton",
+      "duration": "45 min",
+      "id": 1771630443769
+    },
+    {
+      "day": "Miércoles",
+      "time": "18:00",
+      "studentId": "1771452934372",
+      "studentName": "Tomás Walton",
+      "duration": "45 min",
+      "id": 1771630459590
+    },
+    {
+      "day": "Jueves",
+      "time": "09:00",
+      "studentId": "1771452979440",
+      "studentName": "Reginne Ruso",
+      "duration": "45 min",
+      "id": 1771630492632
+    },
+    {
+      "day": "Jueves",
+      "time": "10:45",
+      "studentId": "1771453033275",
+      "studentName": "Andrea Novoa",
+      "duration": "1 hora",
+      "id": 1771630528162
+    },
+    {
+      "day": "Jueves",
+      "time": "14:00",
+      "studentId": "1771453166233",
+      "studentName": "José Francisco Winter",
+      "duration": "1 hora",
+      "id": 1771630564703
+    },
+    {
+      "day": "Jueves",
+      "time": "16:15",
+      "studentId": "1771453295122",
+      "studentName": "Pedro Moro",
+      "duration": "30 min",
+      "id": 1771630587176
+    },
+    {
+      "day": "Jueves",
+      "time": "16:45",
+      "studentId": "1771453267717",
+      "studentName": "Josefina Moro",
+      "duration": "45 min",
+      "id": 1771630621478
+    },
+    {
+      "day": "Jueves",
+      "time": "18:00",
+      "studentId": "1771453340042",
+      "studentName": "Franco Colonna",
+      "duration": "45 min",
+      "id": 1771630651709
+    },
+    {
+      "day": "Jueves",
+      "time": "20:30",
+      "studentId": "1771459829174",
+      "studentName": "Constanza Contreras",
+      "duration": "45 min",
+      "id": 1771630684609
+    },
+    {
+      "day": "Viernes",
+      "time": "10:00",
+      "studentId": "1771630748712",
+      "studentName": "Ignacia Yévenes",
+      "duration": "45 min",
+      "id": 1771630780665
+    },
+    {
+      "day": "Viernes",
+      "time": "11:00",
+      "studentId": "1771460728256",
+      "studentName": "Cristian Lira",
+      "duration": "1 hora",
+      "id": 1771630797933
+    },
+    {
+      "day": "Viernes",
+      "time": "14:00",
+      "studentId": "1771460080834",
+      "studentName": "Antonia Arata",
+      "duration": "45 min",
+      "id": 1771630826273
+    },
+    {
+      "day": "Viernes",
+      "time": "14:45",
+      "studentId": "1771459947878",
+      "studentName": "Olivia Arata",
+      "duration": "45 min",
+      "id": 1771630844471
+    },
+    {
+      "day": "Viernes",
+      "time": "15:30",
+      "studentId": "1771459714550",
+      "studentName": "Elisa Reyes",
+      "duration": "30 min",
+      "id": 1771630877706
+    },
+    {
+      "day": "Viernes",
+      "time": "17:20",
+      "studentId": "1771542683855",
+      "studentName": "Mellis Ocaranza",
+      "duration": "45 min",
+      "id": 1771630920783
+    },
+    {
+      "day": "Viernes",
+      "time": "18:00",
+      "studentId": "1771460232714",
+      "studentName": "Javier Ocaranza",
+      "duration": "45 min",
+      "id": 1771630968268
+    },
+    {
+      "day": "Viernes",
+      "time": "18:45",
+      "studentId": "1771460253477",
+      "studentName": "Antonia Ocaranza",
+      "duration": "45 min",
+      "id": 1771630990573
+    },
+    {
+      "day": "Viernes",
+      "time": "20:00",
+      "studentId": "1771460467036",
+      "studentName": "Franco Justiniano",
+      "duration": "45 min",
+      "id": 1771631010785
+    },
+    {
+      "day": "Sábado",
+      "time": "10:00",
+      "studentId": "1771460850228",
+      "studentName": "Luciano Socias",
+      "duration": "45 min",
+      "id": 1771631041047
+    }
+  ],
+  "brandSettings": {
+    "name": "AbsaPiano",
+    "icon": "Music"
+  }
+}

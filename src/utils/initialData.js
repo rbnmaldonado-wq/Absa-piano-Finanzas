@@ -30,7 +30,8 @@ export const initialData = {
         name: m,
         pianoClasses: [], // { id, studentName, rate, count, total, paymentDate, status: 'Pendiente' | 'Al día' }
         expenses: [],     // { id, categoryId, amount, description, date, subcategory, paymentMethodId }
-        incomes: []       // { id, categoryId, amount, description, date }
+        incomes: [],      // { id, categoryId, amount, description, date }
+        savings: []       // { id, description, amount, date, type: 'ahorro'|'deuda'|'inversion' }
     })),
     schedule: [], // { id, day, time, studentId, studentName }
     brandSettings: {
