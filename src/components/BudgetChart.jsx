@@ -196,6 +196,7 @@ const BudgetChart = ({ monthIndex }) => {
                                         color: '#fff',
                                         fontSize: '13px'
                                     }}
+                                    itemStyle={{ color: '#fff' }}
                                     formatter={(value) => [`$${value.toLocaleString('es-CL')}`, '']}
                                 />
                             </PieChart>
@@ -257,6 +258,7 @@ const BudgetChart = ({ monthIndex }) => {
                                             color: '#fff',
                                             fontSize: '13px'
                                         }}
+                                        itemStyle={{ color: '#fff' }}
                                         formatter={(value) => [`$${value.toLocaleString('es-CL')}`, '']}
                                     />
                                 </PieChart>
