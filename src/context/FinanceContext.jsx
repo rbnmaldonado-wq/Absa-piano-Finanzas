@@ -309,6 +309,11 @@ export const FinanceProvider = ({ children }) => {
         });
     };
 
+    const deleteStudentInDb = (id) => {
+        const updatedDb = (data.studentDb || []).filter(s => s.id !== id);
+        updateData({ ...data, studentDb: updatedDb });
+    };
+
     const importStudentsToMonth = (monthIndex) => {
         const activeStudents = (data.studentDb || []).filter(s => s.active);
         const currentMonthClasses = data.months[monthIndex].pianoClasses;
