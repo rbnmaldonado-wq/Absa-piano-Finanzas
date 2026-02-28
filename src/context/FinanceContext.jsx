@@ -254,15 +254,59 @@ export const FinanceProvider = ({ children }) => {
     };
 
     const updateStudentInDb = (id, updatedFields) => {
+        // Actualizamos base de datos principal
         const updatedDb = (data.studentDb || []).map(s =>
             s.id === id ? { ...s, ...updatedFields } : s
         );
-        updateData({ ...data, studentDb: updatedDb });
-    };
 
-    const deleteStudentInDb = (id) => {
-        const updatedDb = (data.studentDb || []).filter(s => s.id !== id);
-        updateData({ ...data, studentDb: updatedDb });
+        // Propagamos a meses: si la clase está pendiente, toma el nuevo rate, nombre, duración, familia y recalcula total
+        const updatedMonths = (data.months || []).map((m) => {
+            const newClasses = (m.pianoClasses || []).map(c => {
+                if (c.studentId == id && c.status === 'Pendiente') {
+                    // Evitamos overwrite si updatedFields no trae estos valores, usamos short values si existen
+                    const newRate = updatedFields.defaultRate !== undefined ? updatedFields.defaultRate : c.rate;
+                    const newName = updatedFields.name !== undefined ? updatedFields.name : c.studentName;
+                    const newFamily = updatedFields.family !== undefined ? updatedFields.family : c.family;
+                    const newDuration = updatedFields.duration !== undefined ? updatedFields.duration : c.duration;
+                    const newTotal = Number(newRate) * Number(c.count);
+
+                    return {
+                        ...c,
+                        studentName: newName,
+                        rate: newRate,
+                        family: newFamily,
+                        duration: newDuration,
+                        total: newTotal
+                    };
+                }
+                return c;
+            });
+            return {
+                ...m,
+                pianoClasses: newClasses
+            };
+        });
+
+        // Actualizamos Horarios si cambian los datos (nombre, duración)
+        const updatedSchedule = (data.schedule || []).map(item => {
+            if (item.studentId == id) {
+                const newName = updatedFields.name !== undefined ? updatedFields.name : item.studentName;
+                const newDuration = updatedFields.duration !== undefined ? updatedFields.duration : item.duration;
+                return {
+                    ...item,
+                    studentName: newName,
+                    duration: newDuration
+                };
+            }
+            return item;
+        });
+
+        updateData({
+            ...data,
+            studentDb: updatedDb,
+            months: updatedMonths,
+            schedule: updatedSchedule
+        });
     };
 
     const importStudentsToMonth = (monthIndex) => {
