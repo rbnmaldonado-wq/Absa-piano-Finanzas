@@ -229,6 +229,8 @@ const Schedule = () => {
                                     {(data.schedule || []).filter(item => item.day === day).map(item => {
                                         const classStartMins = timeToMinutes(item.time) - (START_HOUR * 60);
                                         const classDurationMins = durationToMinutes(item.duration);
+                                        const endTimeMins = timeToMinutes(item.time) + classDurationMins;
+                                        const endTimeStr = minutesToTime(endTimeMins);
 
                                         const top = classStartMins * pixelsPerMinute;
                                         const height = classDurationMins * pixelsPerMinute;
@@ -242,7 +244,11 @@ const Schedule = () => {
                                                 style={{ top: `${top}px`, height: `${height}px` }}
                                             >
                                                 <div className="flex justify-between items-start gap-1">
-                                                    <div className="text-[10px] font-mono font-bold text-indigo-300 leading-none bg-indigo-950/50 px-1 rounded-sm w-max inline-block shadow-sm border border-indigo-500/20">{item.time}</div>
+                                                    <div className="flex items-center gap-1 text-[10px] font-mono font-bold text-indigo-300 leading-none bg-indigo-950/50 px-1.5 py-0.5 rounded-sm w-max shadow-sm border border-indigo-500/20">
+                                                        <span>{item.time}</span>
+                                                        <span className="text-indigo-400/50 opacity-70 font-normal">-</span>
+                                                        <span className="text-indigo-200">{endTimeStr}</span>
+                                                    </div>
                                                     {classDurationMins > 30 && (
                                                         <span className="text-[9px] text-indigo-400/70 font-mono tracking-tighter truncate">{item.duration}</span>
                                                     )}
