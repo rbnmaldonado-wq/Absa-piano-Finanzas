@@ -4,7 +4,7 @@ import { useFinance } from '../context/FinanceContext';
 import PianoClassesTable from './PianoClassesTable';
 import BudgetChart from './BudgetChart';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, TrendingUp, TrendingDown, DollarSign, ArrowLeft, CreditCard, Tag, Wallet, X, Download, Pencil, CheckCircle, Clock, PiggyBank, Target } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, TrendingDown, DollarSign, ArrowLeft, CreditCard, Tag, Wallet, X, Download, Pencil, CheckCircle, Clock, PiggyBank, Target, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 
 const MonthView = ({ monthIndex, onBack }) => {
     const { data, addTransaction, deleteTransaction, importTransactionsFromPreviousMonth, updateTransaction, addSaving, deleteSaving } = useFinance();
@@ -20,6 +20,12 @@ const MonthView = ({ monthIndex, onBack }) => {
         paymentMethodId: '',
         date: new Date().toISOString().split('T')[0]
     });
+
+    // Filter States
+    const [showFilters, setShowFilters] = useState(false);
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
+    const [selectedPaymentMethodIds, setSelectedPaymentMethodIds] = useState([]);
+
 
     const getMonthSummary = () => {
         const pianoTotal = monthData.pianoClasses.reduce((acc, curr) => acc + Number(curr.total), 0);
@@ -271,15 +277,34 @@ const MonthView = ({ monthIndex, onBack }) => {
                                 </div>
                                 {activeTab === 'expenses' ? 'Registro de Gastos' : 'Otros Ingresos'}
                             </h3>
-                            <button
-                                onClick={() => setIsAdding(!isAdding)}
-                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all text-sm font-bold shadow-lg ${isAdding
-                                    ? 'bg-slate-800 text-slate-300 border border-white/5'
-                                    : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/20'}`}
-                            >
-                                {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                                {isAdding ? 'Cancelar' : 'Agregar'}
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setShowFilters(!showFilters)}
+                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all text-sm font-bold border ${showFilters || selectedCategoryIds.length > 0 || selectedPaymentMethodIds.length > 0
+                                            ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+                                            : 'bg-slate-800/50 text-slate-400 border-white/5 hover:text-white hover:bg-slate-800'
+                                        }`}
+                                >
+                                    <Filter className="w-4 h-4" />
+                                    Filtrar
+                                    {(selectedCategoryIds.length > 0 || selectedPaymentMethodIds.length > 0) && (
+                                        <span className="flex items-center justify-center w-5 h-5 bg-indigo-500 text-white text-[10px] rounded-full">
+                                            {selectedCategoryIds.length + selectedPaymentMethodIds.length}
+                                        </span>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setIsAdding(!isAdding)}
+                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all text-sm font-bold shadow-lg ${isAdding
+                                            ? 'bg-slate-800 text-slate-300 border border-white/5'
+                                            : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/20'
+                                        }`}
+                                >
+                                    {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                                    {isAdding ? 'Cancelar' : 'Agregar'}
+                                </button>
+                            </div>
+
                             {monthIndex > 0 && (
                                 <button
                                     onClick={() => {
@@ -298,6 +323,97 @@ const MonthView = ({ monthIndex, onBack }) => {
                                 </button>
                             )}
                         </div>
+
+                        {/* Interactive Filter Panel */}
+                        <AnimatePresence>
+                            {showFilters && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="mb-8 overflow-hidden"
+                                >
+                                    <div className="bg-slate-950/40 p-6 rounded-2xl border border-white/5 space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                <Filter className="w-4 h-4 text-indigo-400" />
+                                                Filtros Activos
+                                            </h4>
+                                            {(selectedCategoryIds.length > 0 || selectedPaymentMethodIds.length > 0) && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedCategoryIds([]);
+                                                        setSelectedPaymentMethodIds([]);
+                                                    }}
+                                                    className="text-xs font-bold text-rose-400 hover:text-rose-300 transition-colors flex items-center gap-1"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                    Limpiar Todo
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            {/* Categories Filter */}
+                                            <div className="space-y-3">
+                                                <p className="text-xs font-bold text-slate-500 flex items-center gap-2">
+                                                    <Tag className="w-3 h-3" /> CATEGORÍAS
+                                                </p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {categories.map(cat => {
+                                                        const isSelected = selectedCategoryIds.includes(cat.id);
+                                                        return (
+                                                            <button
+                                                                key={cat.id}
+                                                                onClick={() => {
+                                                                    setSelectedCategoryIds(prev =>
+                                                                        isSelected ? prev.filter(id => id !== cat.id) : [...prev, cat.id]
+                                                                    );
+                                                                }}
+                                                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${isSelected
+                                                                        ? `${cat.color} text-white border-transparent shadow-lg shadow-${cat.color.split('-')[1]}-500/20`
+                                                                        : 'bg-slate-900/50 text-slate-400 border-white/5 hover:border-slate-700'
+                                                                    }`}
+                                                            >
+                                                                {cat.name}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+
+                                            {/* Payment Methods Filter */}
+                                            <div className="space-y-3">
+                                                <p className="text-xs font-bold text-slate-500 flex items-center gap-2">
+                                                    <CreditCard className="w-3 h-3" /> MEDIOS DE PAGO (TARJETAS)
+                                                </p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {data.paymentMethods.map(method => {
+                                                        const isSelected = selectedPaymentMethodIds.includes(method.id);
+                                                        return (
+                                                            <button
+                                                                key={method.id}
+                                                                onClick={() => {
+                                                                    setSelectedPaymentMethodIds(prev =>
+                                                                        isSelected ? prev.filter(id => id !== method.id) : [...prev, method.id]
+                                                                    );
+                                                                }}
+                                                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${isSelected
+                                                                        ? `${method.color} text-white border-transparent shadow-lg shadow-${method.color.split('-')[1]}-500/20`
+                                                                        : 'bg-slate-900/50 text-slate-400 border-white/5 hover:border-slate-700'
+                                                                    }`}
+                                                            >
+                                                                {method.name}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         {isAdding && (
                             <form onSubmit={handleAddTransaction} className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-950/40 p-6 rounded-2xl border border-white/5 shadow-inner">
@@ -375,20 +491,52 @@ const MonthView = ({ monthIndex, onBack }) => {
                         )}
 
                         <div className="space-y-3">
-                            {(activeTab === 'expenses' ? monthData.expenses : monthData.incomes).length === 0 && (
-                                <p className="text-center text-slate-400 py-8">No hay registros.</p>
-                            )}
-                            {(activeTab === 'expenses' ? monthData.expenses : monthData.incomes).map((tx, idx) => (
-                                <TransactionRow
-                                    key={tx.id || idx}
-                                    tx={tx}
-                                    type={activeTab === 'expenses' ? 'expense' : 'income'}
-                                    categories={data.categories || []}
-                                    paymentMethods={data.paymentMethods || []}
-                                    onUpdate={(updates) => updateTransaction(monthIndex, activeTab === 'expenses' ? 'expense' : 'income', tx.id, updates)}
-                                    onDelete={() => deleteTransaction(monthIndex, activeTab === 'expenses' ? 'expense' : 'income', tx.id)}
-                                />
-                            ))}
+                            {(() => {
+                                const transactions = activeTab === 'expenses' ? monthData.expenses : monthData.incomes;
+                                const filteredTransactions = transactions.filter(tx => {
+                                    if (activeTab !== 'expenses') return true;
+
+                                    // Filter by Category (OR within group)
+                                    const categoryMatch = selectedCategoryIds.length === 0 || selectedCategoryIds.includes(Number(tx.categoryId));
+
+                                    // Filter by Payment Method (OR within group)
+                                    const paymentMethodMatch = selectedPaymentMethodIds.length === 0 || selectedPaymentMethodIds.includes(Number(tx.paymentMethodId));
+
+                                    return categoryMatch && paymentMethodMatch;
+                                });
+
+                                if (filteredTransactions.length === 0) {
+                                    return (
+                                        <div className="text-center py-12 bg-slate-950/20 rounded-2xl border border-dashed border-white/5">
+                                            <Filter className="w-8 h-8 text-slate-700 mx-auto mb-3" />
+                                            <p className="text-slate-400">No se encontraron registros con los filtros seleccionados.</p>
+                                            {(selectedCategoryIds.length > 0 || selectedPaymentMethodIds.length > 0) && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedCategoryIds([]);
+                                                        setSelectedPaymentMethodIds([]);
+                                                    }}
+                                                    className="text-indigo-400 text-sm font-bold mt-2 hover:text-indigo-300"
+                                                >
+                                                    Limpiar filtros para ver todo
+                                                </button>
+                                            )}
+                                        </div>
+                                    );
+                                }
+
+                                return filteredTransactions.map((tx, idx) => (
+                                    <TransactionRow
+                                        key={tx.id || idx}
+                                        tx={tx}
+                                        type={activeTab === 'expenses' ? 'expense' : 'income'}
+                                        categories={data.categories || []}
+                                        paymentMethods={data.paymentMethods || []}
+                                        onUpdate={(updates) => updateTransaction(monthIndex, activeTab === 'expenses' ? 'expense' : 'income', tx.id, updates)}
+                                        onDelete={() => deleteTransaction(monthIndex, activeTab === 'expenses' ? 'expense' : 'income', tx.id)}
+                                    />
+                                ));
+                            })()}
                         </div>
                     </div>
                 )}
