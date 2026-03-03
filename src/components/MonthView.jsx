@@ -281,8 +281,8 @@ const MonthView = ({ monthIndex, onBack }) => {
                                 <button
                                     onClick={() => setShowFilters(!showFilters)}
                                     className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all text-sm font-bold border ${showFilters || selectedCategoryIds.length > 0 || selectedPaymentMethodIds.length > 0
-                                            ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
-                                            : 'bg-slate-800/50 text-slate-400 border-white/5 hover:text-white hover:bg-slate-800'
+                                        ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+                                        : 'bg-slate-800/50 text-slate-400 border-white/5 hover:text-white hover:bg-slate-800'
                                         }`}
                                 >
                                     <Filter className="w-4 h-4" />
@@ -296,8 +296,8 @@ const MonthView = ({ monthIndex, onBack }) => {
                                 <button
                                     onClick={() => setIsAdding(!isAdding)}
                                     className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all text-sm font-bold shadow-lg ${isAdding
-                                            ? 'bg-slate-800 text-slate-300 border border-white/5'
-                                            : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/20'
+                                        ? 'bg-slate-800 text-slate-300 border border-white/5'
+                                        : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/20'
                                         }`}
                                 >
                                     {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
@@ -371,8 +371,8 @@ const MonthView = ({ monthIndex, onBack }) => {
                                                                     );
                                                                 }}
                                                                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${isSelected
-                                                                        ? `${cat.color} text-white border-transparent shadow-lg shadow-${cat.color.split('-')[1]}-500/20`
-                                                                        : 'bg-slate-900/50 text-slate-400 border-white/5 hover:border-slate-700'
+                                                                    ? `${cat.color} text-white border-transparent shadow-lg shadow-${cat.color.split('-')[1]}-500/20`
+                                                                    : 'bg-slate-900/50 text-slate-400 border-white/5 hover:border-slate-700'
                                                                     }`}
                                                             >
                                                                 {cat.name}
@@ -399,8 +399,8 @@ const MonthView = ({ monthIndex, onBack }) => {
                                                                     );
                                                                 }}
                                                                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${isSelected
-                                                                        ? `${method.color} text-white border-transparent shadow-lg shadow-${method.color.split('-')[1]}-500/20`
-                                                                        : 'bg-slate-900/50 text-slate-400 border-white/5 hover:border-slate-700'
+                                                                    ? `${method.color} text-white border-transparent shadow-lg shadow-${method.color.split('-')[1]}-500/20`
+                                                                    : 'bg-slate-900/50 text-slate-400 border-white/5 hover:border-slate-700'
                                                                     }`}
                                                             >
                                                                 {method.name}
