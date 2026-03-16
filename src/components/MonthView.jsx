@@ -26,6 +26,16 @@ const MonthView = ({ monthIndex, onBack }) => {
     const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
     const [selectedPaymentMethodIds, setSelectedPaymentMethodIds] = useState([]);
 
+    const hasActiveFilters = selectedCategoryIds.length > 0 || selectedPaymentMethodIds.length > 0;
+
+    const activeTransactions = activeTab === 'expenses' ? monthData.expenses : (activeTab === 'incomes' ? monthData.incomes : []);
+    const filteredTransactions = activeTransactions.filter(tx => {
+        const categoryMatch = selectedCategoryIds.length === 0 || selectedCategoryIds.includes(Number(tx.categoryId));
+        const paymentMethodMatch = activeTab !== 'expenses' || selectedPaymentMethodIds.length === 0 || selectedPaymentMethodIds.includes(Number(tx.paymentMethodId));
+        return categoryMatch && paymentMethodMatch;
+    });
+
+    const filteredTotal = filteredTransactions.reduce((acc, tx) => acc + Number(tx.amount), 0);
 
     const getMonthSummary = () => {
         const pianoTotal = monthData.pianoClasses.reduce((acc, curr) => acc + Number(curr.total), 0);
@@ -270,58 +280,70 @@ const MonthView = ({ monthIndex, onBack }) => {
                     </div>
                 ) : (
                     <div className="bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-white/5 p-8 shadow-2xl shadow-black/20">
-                        <div className="flex justify-between items-center mb-8">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                             <h3 className="text-xl font-bold text-white flex items-center gap-3">
                                 <div className={`p-2 rounded-xl border ${activeTab === 'expenses' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'}`}>
                                     {activeTab === 'expenses' ? <TrendingDown className="w-5 h-5" /> : <TrendingUp className="w-5 h-5" />}
                                 </div>
                                 {activeTab === 'expenses' ? 'Registro de Gastos' : 'Otros Ingresos'}
                             </h3>
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all text-sm font-bold border ${showFilters || selectedCategoryIds.length > 0 || selectedPaymentMethodIds.length > 0
-                                        ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
-                                        : 'bg-slate-800/50 text-slate-400 border-white/5 hover:text-white hover:bg-slate-800'
-                                        }`}
-                                >
-                                    <Filter className="w-4 h-4" />
-                                    Filtrar
-                                    {(selectedCategoryIds.length > 0 || selectedPaymentMethodIds.length > 0) && (
-                                        <span className="flex items-center justify-center w-5 h-5 bg-indigo-500 text-white text-[10px] rounded-full">
-                                            {selectedCategoryIds.length + selectedPaymentMethodIds.length}
-                                        </span>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={() => setIsAdding(!isAdding)}
-                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all text-sm font-bold shadow-lg ${isAdding
-                                        ? 'bg-slate-800 text-slate-300 border border-white/5'
-                                        : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/20'
-                                        }`}
-                                >
-                                    {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                                    {isAdding ? 'Cancelar' : 'Agregar'}
-                                </button>
-                            </div>
+                            <div className="flex flex-wrap items-center gap-3 md:gap-4 w-full md:w-auto justify-end">
+                                {hasActiveFilters && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.15)] h-[42px]"
+                                    >
+                                        <span className="text-xs text-indigo-300 font-bold uppercase tracking-wider hidden sm:inline">Total Filtrado:</span>
+                                        <span className="text-sm text-indigo-400 font-bold font-mono whitespace-nowrap">${filteredTotal.toLocaleString('es-CL')}</span>
+                                    </motion.div>
+                                )}
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setShowFilters(!showFilters)}
+                                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all text-sm font-bold border h-[42px] ${showFilters || hasActiveFilters
+                                            ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+                                            : 'bg-slate-800/50 text-slate-400 border-white/5 hover:text-white hover:bg-slate-800'
+                                            }`}
+                                    >
+                                        <Filter className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Filtrar</span>
+                                        {hasActiveFilters && (
+                                            <span className="flex items-center justify-center w-5 h-5 bg-indigo-500 text-white text-[10px] rounded-full shadow-md">
+                                                {selectedCategoryIds.length + selectedPaymentMethodIds.length}
+                                            </span>
+                                        )}
+                                    </button>
+                                    <button
+                                        onClick={() => setIsAdding(!isAdding)}
+                                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all text-sm font-bold shadow-lg h-[42px] ${isAdding
+                                            ? 'bg-slate-800 text-slate-300 border border-white/5'
+                                            : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/20'
+                                            }`}
+                                    >
+                                        {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                                        <span className="hidden sm:inline">{isAdding ? 'Cancelar' : 'Agregar'}</span>
+                                    </button>
+                                </div>
 
-                            {monthIndex > 0 && (
-                                <button
-                                    onClick={() => {
-                                        const count = importTransactionsFromPreviousMonth(monthIndex, activeTab === 'expenses' ? 'expense' : 'income');
-                                        if (count > 0) {
-                                            // Optional: toast or alert
-                                        } else {
-                                            alert("No hay registros nuevos para importar del mes pasado.");
-                                        }
-                                    }}
-                                    className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl hover:bg-emerald-500/20 transition-all text-sm font-bold border border-emerald-500/30 shadow-lg shadow-emerald-500/5 ml-2"
-                                    title="Importar registros del mes pasado"
-                                >
-                                    <Download className="w-4 h-4" />
-                                    Importar {activeTab === 'expenses' ? 'Gastos' : 'Ingresos'}
-                                </button>
-                            )}
+                                {monthIndex > 0 && (
+                                    <button
+                                        onClick={() => {
+                                            const count = importTransactionsFromPreviousMonth(monthIndex, activeTab === 'expenses' ? 'expense' : 'income');
+                                            if (count > 0) {
+                                                // Optional: toast or alert
+                                            } else {
+                                                alert("No hay registros nuevos para importar del mes pasado.");
+                                            }
+                                        }}
+                                        className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl hover:bg-emerald-500/20 transition-all text-sm font-bold border border-emerald-500/30 shadow-lg shadow-emerald-500/5 h-[42px]"
+                                        title="Importar registros del mes pasado"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Importar {activeTab === 'expenses' ? 'Gastos' : 'Ingresos'}</span>
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         {/* Interactive Filter Panel */}
@@ -335,11 +357,19 @@ const MonthView = ({ monthIndex, onBack }) => {
                                 >
                                     <div className="bg-slate-950/40 p-6 rounded-2xl border border-white/5 space-y-6">
                                         <div className="flex items-center justify-between">
-                                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                <Filter className="w-4 h-4 text-indigo-400" />
-                                                Filtros Activos
-                                            </h4>
-                                            {(selectedCategoryIds.length > 0 || selectedPaymentMethodIds.length > 0) && (
+                                            <div className="flex items-center gap-4">
+                                                <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                    <Filter className="w-4 h-4 text-indigo-400" />
+                                                    Filtros Activos
+                                                </h4>
+                                                {hasActiveFilters && (
+                                                    <div className="hidden sm:flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 rounded-lg">
+                                                        <span className="text-xs text-indigo-300 font-bold uppercase tracking-wider">Total Filtrado:</span>
+                                                        <span className="text-sm text-indigo-400 font-bold font-mono">${filteredTotal.toLocaleString('es-CL')}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {hasActiveFilters && (
                                                 <button
                                                     onClick={() => {
                                                         setSelectedCategoryIds([]);
@@ -491,41 +521,24 @@ const MonthView = ({ monthIndex, onBack }) => {
                         )}
 
                         <div className="space-y-3">
-                            {(() => {
-                                const transactions = activeTab === 'expenses' ? monthData.expenses : monthData.incomes;
-                                const filteredTransactions = transactions.filter(tx => {
-                                    if (activeTab !== 'expenses') return true;
-
-                                    // Filter by Category (OR within group)
-                                    const categoryMatch = selectedCategoryIds.length === 0 || selectedCategoryIds.includes(Number(tx.categoryId));
-
-                                    // Filter by Payment Method (OR within group)
-                                    const paymentMethodMatch = selectedPaymentMethodIds.length === 0 || selectedPaymentMethodIds.includes(Number(tx.paymentMethodId));
-
-                                    return categoryMatch && paymentMethodMatch;
-                                });
-
-                                if (filteredTransactions.length === 0) {
-                                    return (
-                                        <div className="text-center py-12 bg-slate-950/20 rounded-2xl border border-dashed border-white/5">
-                                            <Filter className="w-8 h-8 text-slate-700 mx-auto mb-3" />
-                                            <p className="text-slate-400">No se encontraron registros con los filtros seleccionados.</p>
-                                            {(selectedCategoryIds.length > 0 || selectedPaymentMethodIds.length > 0) && (
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedCategoryIds([]);
-                                                        setSelectedPaymentMethodIds([]);
-                                                    }}
-                                                    className="text-indigo-400 text-sm font-bold mt-2 hover:text-indigo-300"
-                                                >
-                                                    Limpiar filtros para ver todo
-                                                </button>
-                                            )}
-                                        </div>
-                                    );
-                                }
-
-                                return filteredTransactions.map((tx, idx) => (
+                            {filteredTransactions.length === 0 ? (
+                                <div className="text-center py-12 bg-slate-950/20 rounded-2xl border border-dashed border-white/5">
+                                    <Filter className="w-8 h-8 text-slate-700 mx-auto mb-3" />
+                                    <p className="text-slate-400">No se encontraron registros con los filtros seleccionados.</p>
+                                    {hasActiveFilters && (
+                                        <button
+                                            onClick={() => {
+                                                setSelectedCategoryIds([]);
+                                                setSelectedPaymentMethodIds([]);
+                                            }}
+                                            className="text-indigo-400 text-sm font-bold mt-2 hover:text-indigo-300 transition-colors"
+                                        >
+                                            Limpiar filtros para ver todo
+                                        </button>
+                                    )}
+                                </div>
+                            ) : (
+                                filteredTransactions.map((tx, idx) => (
                                     <TransactionRow
                                         key={tx.id || idx}
                                         tx={tx}
@@ -535,8 +548,8 @@ const MonthView = ({ monthIndex, onBack }) => {
                                         onUpdate={(updates) => updateTransaction(monthIndex, activeTab === 'expenses' ? 'expense' : 'income', tx.id, updates)}
                                         onDelete={() => deleteTransaction(monthIndex, activeTab === 'expenses' ? 'expense' : 'income', tx.id)}
                                     />
-                                ));
-                            })()}
+                                ))
+                            )}
                         </div>
                     </div>
                 )}
