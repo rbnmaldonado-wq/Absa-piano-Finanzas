@@ -230,6 +230,8 @@ export const FinanceProvider = ({ children }) => {
         data.months.forEach(month => {
             // Expenses
             month.expenses.forEach(e => totalExpense += Number(e.amount));
+            // Savings treated as expenses
+            (month.savings || []).forEach(s => totalExpense += Number(s.amount));
             // Incomes
             month.incomes.forEach(i => totalIncome += Number(i.amount));
             // Piano Classes (Calculate as income)

@@ -44,8 +44,8 @@ const MonthView = ({ monthIndex, onBack }) => {
         const totalSavings = (monthData.savings || []).reduce((acc, curr) => acc + Number(curr.amount), 0);
         return {
             income: pianoTotal + otherIncomes,
-            expense: totalExpenses,
-            balance: (pianoTotal + otherIncomes) - totalExpenses,
+            expense: totalExpenses + totalSavings,
+            balance: (pianoTotal + otherIncomes) - (totalExpenses + totalSavings),
             savings: totalSavings
         };
     };

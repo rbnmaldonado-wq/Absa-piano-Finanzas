@@ -23,18 +23,28 @@ const Dashboard = () => {
 
             // Aggregate expenses by category
             m.expenses.forEach(e => {
-                const cat = e.category || 'Otros';
+                const categoryObj = data.categories?.find(c => c.id == e.categoryId);
+                const cat = categoryObj ? categoryObj.name : (e.category || 'Otros');
                 categoryExpenses[cat] = (categoryExpenses[cat] || 0) + Number(e.amount);
             });
 
+            const mSavings = (m.savings || []).reduce((acc, curr) => acc + Number(curr.amount), 0);
+
+            // Aggregate savings as expenses in pie chart
+            (m.savings || []).forEach(s => {
+                const typeLabels = { ahorro: '💰 Ahorro', deuda: '💳 Pago de Deuda', inversion: '📈 Inversión' };
+                const cat = typeLabels[s.type] || '💰 Ahorro';
+                categoryExpenses[cat] = (categoryExpenses[cat] || 0) + Number(s.amount);
+            });
+
             income += mIncome;
-            expense += mExpense;
+            expense += (mExpense + mSavings);
 
             return {
                 name: m.name.substring(0, 3), // Jan, Feb...
                 fullMonth: m.name,
                 Income: mIncome,
-                Expense: mExpense
+                Expense: mExpense + mSavings
             };
         });
 
