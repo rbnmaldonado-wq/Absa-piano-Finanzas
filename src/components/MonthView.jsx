@@ -74,7 +74,28 @@ const MonthView = ({ monthIndex, onBack }) => {
         if (!newTransaction.amount || !newTransaction.categoryId) return;
 
         const type = activeTab === 'expenses' ? 'expense' : 'income';
-        addTransaction(monthIndex, type, newTransaction);
+        let targetMonthIndex = monthIndex;
+
+        if (type === 'expense' && newTransaction.paymentMethodId) {
+            const method = data.paymentMethods?.find(m => m.id == newTransaction.paymentMethodId);
+            if (method && method.type === 'credit' && method.cutoffDate) {
+                const dayStr = newTransaction.date.split('-')[2];
+                const day = parseInt(dayStr, 10);
+                
+                if (day >= method.cutoffDate) {
+                    if (monthIndex < 11) {
+                        const confirmNextMonth = window.confirm(`La fecha de este gasto (día ${dayStr}) es igual o posterior al día de facturación de la tarjeta (día ${method.cutoffDate}).\n\n¿Deseas registrar este gasto automáticamente en el ciclo del próximo mes?`);
+                        if (confirmNextMonth) {
+                            targetMonthIndex = monthIndex + 1;
+                        }
+                    } else {
+                        window.alert(`La fecha indica que corresponde al próximo ciclo según tu tarjeta, pero actualmente estás en el último mes del año fiscal. El gasto se guardará en este mes.`);
+                    }
+                }
+            }
+        }
+
+        addTransaction(targetMonthIndex, type, newTransaction);
         setNewTransaction({
             description: '',
             amount: '',

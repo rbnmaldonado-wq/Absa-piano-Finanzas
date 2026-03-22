@@ -98,12 +98,15 @@ const Settings = () => {
 };
 
 const PaymentMethodsManager = ({ paymentMethods, onAdd, onDelete }) => {
-    const [newMethod, setNewMethod] = useState({ name: '', type: 'credit', color: 'bg-indigo-500' });
+    const [newMethod, setNewMethod] = useState({ name: '', type: 'credit', color: 'bg-indigo-500', cutoffDate: '' });
 
     const handleAdd = (e) => {
         e.preventDefault();
-        onAdd(newMethod);
-        setNewMethod({ name: '', type: 'credit', color: 'bg-indigo-500' });
+        onAdd({
+            ...newMethod,
+            cutoffDate: newMethod.type === 'credit' && newMethod.cutoffDate ? Number(newMethod.cutoffDate) : null
+        });
+        setNewMethod({ name: '', type: 'credit', color: 'bg-indigo-500', cutoffDate: '' });
     };
 
     const colors = [
@@ -138,7 +141,10 @@ const PaymentMethodsManager = ({ paymentMethods, onAdd, onDelete }) => {
                                 </div>
                                 <div>
                                     <p className="font-semibold text-slate-100">{method.name}</p>
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">{method.type === 'credit' ? 'Crédito' : method.type === 'debit' ? 'Débito' : 'Efectivo'}</p>
+                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">
+                                        {method.type === 'credit' ? 'Crédito' : method.type === 'debit' ? 'Débito' : 'Efectivo'}
+                                        {method.type === 'credit' && method.cutoffDate ? ` • Corte: día ${method.cutoffDate}` : ''}
+                                    </p>
                                 </div>
                             </div>
                             <button onClick={() => onDelete(method.id)} className="opacity-0 group-hover/item:opacity-100 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 p-2 rounded-lg transition-all">
@@ -183,6 +189,20 @@ const PaymentMethodsManager = ({ paymentMethods, onAdd, onDelete }) => {
                             <option value="cash">Efectivo</option>
                         </select>
                     </div>
+                    {newMethod.type === 'credit' && (
+                        <div className="space-y-2">
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Día de Facturación / Corte (Opcional)</label>
+                            <input
+                                type="number"
+                                min="1"
+                                max="31"
+                                placeholder="Ej: 25"
+                                className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950/50 text-slate-100 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 outline-none transition-all placeholder:text-slate-600"
+                                value={newMethod.cutoffDate}
+                                onChange={e => setNewMethod({ ...newMethod, cutoffDate: e.target.value })}
+                            />
+                        </div>
+                    )}
                     <div className="space-y-3">
                         <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Color Distintivo</label>
                         <div className="flex flex-wrap gap-3">
