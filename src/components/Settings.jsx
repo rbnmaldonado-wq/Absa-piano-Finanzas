@@ -5,7 +5,7 @@ import { CreditCard, Wallet, Landmark, Plus, Trash2, Tag, ChevronDown, Check, X,
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Settings = () => {
-    const { data, addPaymentMethod, deletePaymentMethod, addCategory, addSubcategory, updateCategory, deleteCategory, deleteSubcategory, loadData, startNewYear } = useFinance();
+    const { data, addPaymentMethod, updatePaymentMethod, deletePaymentMethod, addCategory, addSubcategory, updateCategory, deleteCategory, deleteSubcategory, loadData, startNewYear } = useFinance();
     const [activeTab, setActiveTab] = useState('categories');
 
     return (
@@ -54,6 +54,7 @@ const Settings = () => {
                             <PaymentMethodsManager
                                 paymentMethods={data.paymentMethods || []}
                                 onAdd={addPaymentMethod}
+                                onUpdate={updatePaymentMethod}
                                 onDelete={deletePaymentMethod}
                             />
                         </motion.div>
@@ -97,7 +98,7 @@ const Settings = () => {
     );
 };
 
-const PaymentMethodsManager = ({ paymentMethods, onAdd, onDelete }) => {
+const PaymentMethodsManager = ({ paymentMethods, onAdd, onUpdate, onDelete }) => {
     const [newMethod, setNewMethod] = useState({ name: '', type: 'credit', color: 'bg-indigo-500', cutoffDate: '' });
 
     const handleAdd = (e) => {
@@ -132,25 +133,12 @@ const PaymentMethodsManager = ({ paymentMethods, onAdd, onDelete }) => {
                 </h3>
                 <div className="space-y-4 relative z-10">
                     {paymentMethods.map(method => (
-                        <div key={method.id} className="flex items-center justify-between p-4 bg-slate-800/40 rounded-2xl border border-white/5 hover:border-indigo-500/30 hover:bg-slate-800/60 transition-all group/item shadow-sm">
-                            <div className="flex items-center gap-4">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-[0_0_15px_rgba(0,0,0,0.3)] ${method.color}`}>
-                                    {method.type === 'credit' && <CreditCard className="w-6 h-6" />}
-                                    {method.type === 'debit' && <Landmark className="w-6 h-6" />}
-                                    {method.type === 'cash' && <Wallet className="w-6 h-6" />}
-                                </div>
-                                <div>
-                                    <p className="font-semibold text-slate-100">{method.name}</p>
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">
-                                        {method.type === 'credit' ? 'Crédito' : method.type === 'debit' ? 'Débito' : 'Efectivo'}
-                                        {method.type === 'credit' && method.cutoffDate ? ` • Corte: día ${method.cutoffDate}` : ''}
-                                    </p>
-                                </div>
-                            </div>
-                            <button onClick={() => onDelete(method.id)} className="opacity-0 group-hover/item:opacity-100 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 p-2 rounded-lg transition-all">
-                                <Trash2 className="w-5 h-5" />
-                            </button>
-                        </div>
+                        <PaymentMethodCard
+                            key={method.id}
+                            method={method}
+                            onUpdate={onUpdate}
+                            onDelete={onDelete}
+                        />
                     ))}
                 </div>
             </div>
@@ -220,6 +208,111 @@ const PaymentMethodsManager = ({ paymentMethods, onAdd, onDelete }) => {
                         Agregar Medio de Pago
                     </button>
                 </form>
+            </div>
+        </div>
+    );
+};
+
+const PaymentMethodCard = ({ method, onUpdate, onDelete }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editData, setEditData] = useState({
+        name: method.name,
+        type: method.type,
+        cutoffDate: method.cutoffDate || ''
+    });
+
+    const handleSave = (e) => {
+        e.stopPropagation();
+        onUpdate(method.id, {
+            ...editData,
+            cutoffDate: editData.type === 'credit' && editData.cutoffDate ? Number(editData.cutoffDate) : null
+        });
+        setIsEditing(false);
+    };
+
+    const handleCancel = (e) => {
+        e.stopPropagation();
+        setEditData({
+            name: method.name,
+            type: method.type,
+            cutoffDate: method.cutoffDate || ''
+        });
+        setIsEditing(false);
+    };
+
+    return (
+        <div className="flex items-center justify-between p-4 bg-slate-800/40 rounded-2xl border border-white/5 hover:border-indigo-500/30 hover:bg-slate-800/60 transition-all group/item shadow-sm">
+            <div className="flex items-center gap-4 flex-1">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-[0_0_15px_rgba(0,0,0,0.3)] shrink-0 ${method.color}`}>
+                    {method.type === 'credit' && <CreditCard className="w-6 h-6" />}
+                    {method.type === 'debit' && <Landmark className="w-6 h-6" />}
+                    {method.type === 'cash' && <Wallet className="w-6 h-6" />}
+                </div>
+                
+                {isEditing ? (
+                    <div className="flex flex-col gap-2 flex-1 mr-4" onClick={e => e.stopPropagation()}>
+                        <input
+                            type="text"
+                            className="w-full px-3 py-1.5 rounded-lg border border-indigo-500/50 bg-slate-950/80 text-white text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none"
+                            value={editData.name}
+                            onChange={e => setEditData({ ...editData, name: e.target.value })}
+                            placeholder="Nombre de la tarjeta"
+                            autoFocus
+                        />
+                        <div className="flex gap-2">
+                            <select
+                                className="flex-1 px-3 py-1.5 rounded-lg border border-indigo-500/50 bg-slate-950/80 text-white text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none"
+                                value={editData.type}
+                                onChange={e => setEditData({ ...editData, type: e.target.value })}
+                            >
+                                <option value="credit">Crédito</option>
+                                <option value="debit">Débito</option>
+                                <option value="cash">Efectivo</option>
+                            </select>
+                            {editData.type === 'credit' && (
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="31"
+                                    placeholder="Día Corte"
+                                    className="w-24 px-3 py-1.5 rounded-lg border border-indigo-500/50 bg-slate-950/80 text-white text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none"
+                                    value={editData.cutoffDate}
+                                    onChange={e => setEditData({ ...editData, cutoffDate: e.target.value })}
+                                />
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex-1">
+                        <p className="font-semibold text-slate-100">{method.name}</p>
+                        <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">
+                            {method.type === 'credit' ? 'Crédito' : method.type === 'debit' ? 'Débito' : 'Efectivo'}
+                            {method.type === 'credit' && method.cutoffDate ? ` • Corte: día ${method.cutoffDate}` : ''}
+                        </p>
+                    </div>
+                )}
+            </div>
+
+            <div className="flex items-center gap-1">
+                {isEditing ? (
+                    <>
+                        <button onClick={handleSave} className="p-1.5 text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-colors">
+                            <Check className="w-5 h-5" />
+                        </button>
+                        <button onClick={handleCancel} className="p-1.5 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        <button onClick={() => setIsEditing(true)} className="opacity-0 group-hover/item:opacity-100 p-2 text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-all" title="Editar">
+                            <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => onDelete(method.id)} className="opacity-0 group-hover/item:opacity-100 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 p-2 rounded-lg transition-all">
+                            <Trash2 className="w-5 h-5" />
+                        </button>
+                    </>
+                )}
             </div>
         </div>
     );
