@@ -79,17 +79,25 @@ const MonthView = ({ monthIndex, onBack }) => {
         if (type === 'expense' && newTransaction.paymentMethodId) {
             const method = data.paymentMethods?.find(m => m.id == newTransaction.paymentMethodId);
             if (method && method.type === 'credit' && method.cutoffDate) {
-                const dayStr = newTransaction.date.split('-')[2];
-                const day = parseInt(dayStr, 10);
+                const parts = newTransaction.date.split('-');
+                const txMonth = parseInt(parts[1], 10) - 1; // 0-based month
+                const day = parseInt(parts[2], 10);
                 
+                let billingMonthIndex = txMonth;
                 if (day >= method.cutoffDate) {
-                    if (monthIndex < 11) {
-                        const confirmNextMonth = window.confirm(`La fecha de este gasto (día ${dayStr}) es igual o posterior al día de facturación de la tarjeta (día ${method.cutoffDate}).\n\n¿Deseas registrar este gasto automáticamente en el ciclo del próximo mes?`);
+                    billingMonthIndex = txMonth + 1;
+                }
+
+                if (billingMonthIndex !== monthIndex) {
+                    if (billingMonthIndex < 12) {
+                        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+                        const targetMonthName = monthNames[billingMonthIndex];
+                        const confirmNextMonth = window.confirm(`La fecha de este gasto indica que corresponde al ciclo de ${targetMonthName} (corte los días ${method.cutoffDate}).\n\n¿Deseas registrar este gasto automáticamente en ${targetMonthName}?`);
                         if (confirmNextMonth) {
-                            targetMonthIndex = monthIndex + 1;
+                            targetMonthIndex = billingMonthIndex;
                         }
                     } else {
-                        window.alert(`La fecha indica que corresponde al próximo ciclo según tu tarjeta, pero actualmente estás en el último mes del año fiscal. El gasto se guardará en este mes.`);
+                        window.alert(`La fecha indica que corresponde al próximo ciclo según tu tarjeta, pero pertenece al próximo año fiscal. El gasto se guardará en el mes seleccionado.`);
                     }
                 }
             }

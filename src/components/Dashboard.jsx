@@ -1,15 +1,21 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { motion } from 'framer-motion';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell
 } from 'recharts';
-import { Wallet, TrendingUp, TrendingDown, Music } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, Music, Clock } from 'lucide-react';
 
 const Dashboard = () => {
     const { data } = useFinance();
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
 
     const summary = useMemo(() => {
         let income = 0;
@@ -64,11 +70,24 @@ const Dashboard = () => {
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex justify-between items-center"
+                className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
             >
                 <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
                     Dashboard Financiero {data.year}
                 </h1>
+                
+                {/* Visual Clock */}
+                <div className="flex items-center gap-3 px-4 py-2 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl shadow-lg shadow-black/20">
+                    <Clock className="w-5 h-5 text-indigo-400" />
+                    <div className="flex flex-col">
+                        <span className="text-sm font-medium text-slate-300">
+                            {currentTime.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
+                        </span>
+                        <span className="text-xs font-bold text-slate-400 font-mono tracking-wider">
+                            {currentTime.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </span>
+                    </div>
+                </div>
             </motion.div>
 
             {/* KPI Cards */}
