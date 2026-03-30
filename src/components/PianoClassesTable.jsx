@@ -15,10 +15,14 @@ const PianoClassesTable = ({ monthIndex }) => {
 
     // Students available for import (active and not already in this month)
     const availableStudents = useMemo(() => {
-        return allStudents.filter(s =>
-            s.active &&
-            !classes.some(c => c.studentId == s.id || c.studentName === s.name)
-        );
+        return allStudents.filter(s => {
+            if (!s.active) return false;
+            const sNameRaw = (s.name || '').trim().toLowerCase();
+            return !classes.some(c => 
+                c.studentId == s.id || 
+                (c.studentName || '').trim().toLowerCase() === sNameRaw
+            );
+        });
     }, [allStudents, classes]);
 
     // Group classes by family
@@ -28,7 +32,9 @@ const PianoClassesTable = ({ monthIndex }) => {
 
         classes.forEach(cls => {
             if (cls.family && cls.family.trim() !== '') {
-                const familyName = cls.family.trim();
+                // Normalize: trim, lower case, then capitalize first letters
+                const raw = cls.family.trim().toLowerCase();
+                const familyName = raw.replace(/\b\w/g, l => l.toUpperCase());
                 if (!groups[familyName]) {
                     groups[familyName] = [];
                 }

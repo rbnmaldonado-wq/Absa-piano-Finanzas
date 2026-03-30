@@ -26,7 +26,10 @@ const StudentDatabase = () => {
 
         students.forEach(student => {
             if (student.family && student.family.trim() !== '') {
-                const familyName = student.family.trim();
+                // Normalize: lower case and capitalize first letter of each word
+                const raw = student.family.trim().toLowerCase();
+                const familyName = raw.replace(/\b\w/g, l => l.toUpperCase());
+                
                 if (!groups[familyName]) {
                     groups[familyName] = [];
                 }

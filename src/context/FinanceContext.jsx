@@ -321,7 +321,13 @@ export const FinanceProvider = ({ children }) => {
         const currentMonthClasses = data.months[monthIndex].pianoClasses;
 
         const newClasses = activeStudents
-            .filter(s => !currentMonthClasses.some(c => c.studentId == s.id || c.studentName === s.name))
+            .filter(s => {
+                const sNameRaw = (s.name || '').trim().toLowerCase();
+                return !currentMonthClasses.some(c => 
+                    c.studentId == s.id || 
+                    (c.studentName || '').trim().toLowerCase() === sNameRaw
+                );
+            })
             .map(s => ({
                 id: Date.now() + Math.random(),
                 studentId: s.id,
@@ -354,7 +360,13 @@ export const FinanceProvider = ({ children }) => {
         const currentMonthClasses = data.months[monthIndex].pianoClasses;
 
         const newClasses = selectedStudents
-            .filter(s => !currentMonthClasses.some(c => c.studentId == s.id || c.studentName === s.name))
+            .filter(s => {
+                const sNameRaw = (s.name || '').trim().toLowerCase();
+                return !currentMonthClasses.some(c => 
+                    c.studentId == s.id || 
+                    (c.studentName || '').trim().toLowerCase() === sNameRaw
+                );
+            })
             .map(s => ({
                 id: Date.now() + Math.random(),
                 studentId: s.id,
