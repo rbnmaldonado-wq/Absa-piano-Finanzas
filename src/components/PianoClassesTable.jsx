@@ -16,7 +16,7 @@ const PianoClassesTable = ({ monthIndex }) => {
     // Students available for import (active and not already in this month)
     const availableStudents = useMemo(() => {
         return allStudents.filter(s => {
-            if (!s.active) return false;
+            if (s.active === false) return false;
             const sNameRaw = (s.name || '').trim().toLowerCase();
             return !classes.some(c => 
                 c.studentId == s.id || 

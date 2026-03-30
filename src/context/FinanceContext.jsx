@@ -317,7 +317,7 @@ export const FinanceProvider = ({ children }) => {
     };
 
     const importStudentsToMonth = (monthIndex) => {
-        const activeStudents = (data.studentDb || []).filter(s => s.active);
+        const activeStudents = (data.studentDb || []).filter(s => s.active !== false);
         const currentMonthClasses = data.months[monthIndex].pianoClasses;
 
         const newClasses = activeStudents
