@@ -4,10 +4,10 @@ import { useFinance } from '../context/FinanceContext';
 import PianoClassesTable from './PianoClassesTable';
 import BudgetChart from './BudgetChart';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, TrendingUp, TrendingDown, DollarSign, ArrowLeft, CreditCard, Tag, Wallet, X, Download, Pencil, CheckCircle, Clock, PiggyBank, Target, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, TrendingDown, DollarSign, ArrowLeft, CreditCard, Tag, Wallet, X, Download, Pencil, CheckCircle, Clock, PiggyBank, Target, Filter, ChevronDown, ChevronUp, Repeat } from 'lucide-react';
 
 const MonthView = ({ monthIndex, onBack }) => {
-    const { data, addTransaction, deleteTransaction, importTransactionsFromPreviousMonth, updateTransaction, addSaving, deleteSaving } = useFinance();
+    const { data, addTransaction, deleteTransaction, importTransactionsFromPreviousMonth, updateTransaction, addSaving, deleteSaving, getToday } = useFinance();
     const monthData = data.months[monthIndex];
 
     const [activeTab, setActiveTab] = useState('piano'); // 'piano', 'incomes', 'expenses', 'savings', 'budget'
@@ -18,7 +18,12 @@ const MonthView = ({ monthIndex, onBack }) => {
         categoryId: '',
         subcategory: '',
         paymentMethodId: '',
-        date: new Date().toISOString().split('T')[0]
+        date: (() => {
+            const today = getToday();
+            const d = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
+            return d.toISOString().split('T')[0];
+        })(),
+        isFixed: false
     });
 
     // Filter States
@@ -57,7 +62,11 @@ const MonthView = ({ monthIndex, onBack }) => {
         description: '',
         amount: '',
         type: 'ahorro',
-        date: new Date().toISOString().split('T')[0]
+        date: (() => {
+            const today = getToday();
+            const d = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
+            return d.toISOString().split('T')[0];
+        })()
     });
     const [isAddingSaving, setIsAddingSaving] = useState(false);
 
@@ -65,7 +74,11 @@ const MonthView = ({ monthIndex, onBack }) => {
         e.preventDefault();
         if (!newSaving.amount) return;
         addSaving(monthIndex, newSaving);
-        setNewSaving({ description: '', amount: '', type: 'ahorro', date: new Date().toISOString().split('T')[0] });
+        setNewSaving({ description: '', amount: '', type: 'ahorro', date: (() => {
+            const today = getToday();
+            const d = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
+            return d.toISOString().split('T')[0];
+        })() });
         setIsAddingSaving(false);
     };
 
@@ -110,7 +123,12 @@ const MonthView = ({ monthIndex, onBack }) => {
             categoryId: '',
             subcategory: '',
             paymentMethodId: '',
-            date: new Date().toISOString().split('T')[0]
+            date: (() => {
+                const today = getToday();
+                const d = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
+                return d.toISOString().split('T')[0];
+            })(),
+            isFixed: false
         });
         setIsAdding(false);
     };
@@ -533,16 +551,29 @@ const MonthView = ({ monthIndex, onBack }) => {
                                             </button>
                                         </div>
                                         {activeTab === 'expenses' && (
-                                            <select
-                                                className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/70 text-slate-300 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
-                                                value={newTransaction.paymentMethodId}
-                                                onChange={e => setNewTransaction({ ...newTransaction, paymentMethodId: e.target.value })}
-                                            >
-                                                <option value="">Medio de Pago</option>
-                                                {(data.paymentMethods || []).map(method => (
-                                                    <option key={method.id} value={method.id}>{method.name}</option>
-                                                ))}
-                                            </select>
+                                            <div className="flex gap-2">
+                                                <select
+                                                    className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/70 text-slate-300 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
+                                                    value={newTransaction.paymentMethodId}
+                                                    onChange={e => setNewTransaction({ ...newTransaction, paymentMethodId: e.target.value })}
+                                                >
+                                                    <option value="">Medio de Pago</option>
+                                                    {(data.paymentMethods || []).map(method => (
+                                                        <option key={method.id} value={method.id}>{method.name}</option>
+                                                    ))}
+                                                </select>
+                                                <label className="flex items-center gap-2 px-3 py-2.5 bg-slate-950/70 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-800 transition-colors w-full whitespace-nowrap">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500/50 focus:ring-offset-0 focus:ring-1"
+                                                        checked={newTransaction.isFixed}
+                                                        onChange={e => setNewTransaction({ ...newTransaction, isFixed: e.target.checked })}
+                                                    />
+                                                    <span className="text-sm font-medium text-slate-300 flex items-center gap-1.5">
+                                                        <Repeat className="w-3.5 h-3.5 text-indigo-400" /> Fijo Mensual
+                                                    </span>
+                                                </label>
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -595,9 +626,14 @@ const TransactionRow = ({ tx, type, categories, paymentMethods, onUpdate, onDele
         categoryId: tx.categoryId || '',
         subcategory: tx.subcategory || '',
         paymentMethodId: tx.paymentMethodId || '',
-        date: tx.date || new Date().toISOString().split('T')[0],
+        date: tx.date || (() => {
+            const today = new Date();
+            const d = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
+            return d.toISOString().split('T')[0];
+        })(),
         status: tx.status || 'Pendiente',
-        paymentDate: tx.paymentDate || null
+        paymentDate: tx.paymentDate || null,
+        isFixed: tx.isFixed || false
     });
 
     const category = categories.find(c => c.id == tx.categoryId);
@@ -613,6 +649,9 @@ const TransactionRow = ({ tx, type, categories, paymentMethods, onUpdate, onDele
         let paymentDate = null;
 
         if (newStatus === 'Al día') {
+            // We should ideally use getToday here too, but TransactionRow is not inside FinanceContext.
+            // But actually we are in the same file. I'll just use the system date or pass getToday as a prop?
+            // To keep it simple, we just use system Date for checking payment of AL DIA since it's an exact real-world action usually.
             const todayDate = new Date();
             const dd = String(todayDate.getDate()).padStart(2, '0');
             const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
@@ -686,14 +725,25 @@ const TransactionRow = ({ tx, type, categories, paymentMethods, onUpdate, onDele
                         {categories.filter(c => c.type === type).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                     {type === 'expense' && (
-                        <select
-                            className="px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white text-xs"
-                            value={editData.paymentMethodId}
-                            onChange={e => setEditData({ ...editData, paymentMethodId: e.target.value })}
-                        >
-                            <option value="">Medio de Pago</option>
-                            {paymentMethods.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-                        </select>
+                        <>
+                            <select
+                                className="px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white text-xs"
+                                value={editData.paymentMethodId}
+                                onChange={e => setEditData({ ...editData, paymentMethodId: e.target.value })}
+                            >
+                                <option value="">Medio de Pago</option>
+                                {paymentMethods.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                            </select>
+                            <label className="flex items-center gap-2 px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-800 transition-colors">
+                                <input
+                                    type="checkbox"
+                                    className="w-3.5 h-3.5 rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500/50"
+                                    checked={editData.isFixed}
+                                    onChange={e => setEditData({ ...editData, isFixed: e.target.checked })}
+                                />
+                                <span className="text-xs font-medium text-slate-300">Fijo / Mensual</span>
+                            </label>
+                        </>
                     )}
                     <div className="flex justify-end gap-2 items-center">
                         <button onClick={handleSave} className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg"><CheckCircle className="w-5 h-5" /></button>
@@ -729,6 +779,11 @@ const TransactionRow = ({ tx, type, categories, paymentMethods, onUpdate, onDele
                                 <span>•</span>
                                 <span>{tx.subcategory}</span>
                             </>
+                        )}
+                        {tx.isFixed && (
+                            <span className="flex items-center gap-1 text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded ml-2 border border-indigo-500/20">
+                                <Repeat className="w-3 h-3" /> Fijo Mensual
+                            </span>
                         )}
                     </div>
                 </div>

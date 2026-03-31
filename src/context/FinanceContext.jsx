@@ -14,6 +14,18 @@ export const FinanceProvider = ({ children }) => {
     const [history, setHistory] = useState([]);
     const [future, setFuture] = useState([]);
 
+    // Virtual Clock State
+    const [virtualDate, setVirtualDate] = useState(null);
+
+    const getToday = () => {
+        if (virtualDate) {
+            // Asegurarse de que el string YYYY-MM-DD se parsea localmente para evitar desfases de UTC
+            const [year, month, day] = virtualDate.split('-');
+            return new Date(year, month - 1, day);
+        }
+        return new Date();
+    };
+
     const updateData = (newData) => {
         setHistory(prev => {
             const newHistory = [...prev, data];
@@ -145,12 +157,18 @@ export const FinanceProvider = ({ children }) => {
         updateData({ ...data, months: updatedMonths });
     };
 
-    const deletePianoClass = (monthIndex, classId) => {
+    const deletePianoClass = (monthIndex, classObj) => {
         const updatedMonths = data.months.map((m, idx) => {
             if (idx === monthIndex) {
                 return {
                     ...m,
-                    pianoClasses: m.pianoClasses.filter(c => c.id !== classId)
+                    pianoClasses: m.pianoClasses.filter(c => {
+                        // Strict ref equality
+                        if (c === classObj) return false;
+                        // For string/number matching, ensure id is valid, else fallback to ref. (Handles NaN issue)
+                        if (c.id === classObj.id && c.id !== undefined && !Number.isNaN(c.id)) return false;
+                        return true;
+                    })
                 };
             }
             return m;
@@ -196,13 +214,14 @@ export const FinanceProvider = ({ children }) => {
 
         // Clone items but give them new IDs and set status to Pendiente
         const newItems = prevItems
+            .filter(pi => pi.isFixed) // Solo importa si están marcados como fijos/recurrentes
             .filter(pi => !currentItems.some(ci => ci.description === pi.description && ci.amount === pi.amount))
             .map(pi => ({
                 ...pi,
                 id: Date.now() + Math.random(),
                 status: 'Pendiente',
                 paymentDate: null,
-                date: new Date().toISOString().split('T')[0] // Use current date for the new month's record
+                date: getToday().toISOString().split('T')[0] // Use current/virtual date for the new month's record
             }));
 
         if (newItems.length === 0) return 0;
@@ -584,7 +603,10 @@ export const FinanceProvider = ({ children }) => {
         updateTransaction,
         addSaving,
         updateSaving,
-        deleteSaving
+        deleteSaving,
+        virtualDate,
+        setVirtualDate,
+        getToday
     };
 
     return (

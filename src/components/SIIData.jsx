@@ -1,8 +1,7 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FileText, Copy, Check, Search, User, Plus, X, Pencil, Trash2 } from 'lucide-react';
+import { FileText, Copy, Check, Search, User, Plus, X, Pencil, Trash2, Users } from 'lucide-react';
 
 const SIIData = () => {
     const { data, addStudentToDb, updateStudentInDb, deleteStudentInDb } = useFinance();
@@ -38,6 +37,33 @@ const SIIData = () => {
         s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (s.fullName && s.fullName.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+
+    const groupedStudents = useMemo(() => {
+        const groups = {};
+        const noFamily = [];
+
+        filteredStudents.forEach(student => {
+            if (student.family && student.family.trim() !== '') {
+                const raw = student.family.trim().toLowerCase();
+                const familyName = raw.replace(/\b\w/g, l => l.toUpperCase());
+                if (!groups[familyName]) {
+                    groups[familyName] = [];
+                }
+                groups[familyName].push(student);
+            } else {
+                noFamily.push(student);
+            }
+        });
+
+        const sortedGroups = Object.keys(groups).sort().reduce((acc, key) => {
+            acc[key] = groups[key].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            return acc;
+        }, {});
+
+        const sortedNoFamily = [...noFamily].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+        return { groups: sortedGroups, noFamily: sortedNoFamily };
+    }, [filteredStudents]);
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -158,9 +184,9 @@ const SIIData = () => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-950/50 border-b border-white/5">
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Alumno</th>
+                                <th className="px-8 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Alumno</th>
                                 <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Facturación / Contacto</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Acciones</th>
+                                <th className="px-8 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
@@ -172,16 +198,58 @@ const SIIData = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredStudents.map((student) => (
-                                    <SIIRow
-                                        key={student.id}
-                                        student={student}
-                                        onUpdate={(updates) => updateStudentInDb(student.id, updates)}
-                                        onDelete={() => deleteStudentInDb(student.id)}
-                                        onCopy={handleCopy}
-                                        copiedId={copiedId}
-                                    />
-                                ))
+                                <>
+                                    {Object.entries(groupedStudents.groups).map(([familyName, familyMembers]) => (
+                                        <React.Fragment key={familyName}>
+                                            <tr className="bg-slate-900/80 border-b border-white/5">
+                                                <td colSpan="3" className="px-8 py-4">
+                                                    <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm uppercase tracking-wider">
+                                                        <Users className="w-5 h-5 text-indigo-400" />
+                                                        {familyName}
+                                                        <span className="text-xs text-slate-500 bg-slate-800 px-2 py-0.5 rounded-full normal-case tracking-normal">
+                                                            {familyMembers.length} alumnos
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {familyMembers.map((student) => (
+                                                <SIIRow
+                                                    key={student.id}
+                                                    student={student}
+                                                    onUpdate={(updates) => updateStudentInDb(student.id, updates)}
+                                                    onDelete={() => deleteStudentInDb(student.id)}
+                                                    onCopy={handleCopy}
+                                                    copiedId={copiedId}
+                                                />
+                                            ))}
+                                        </React.Fragment>
+                                    ))}
+
+                                    {groupedStudents.noFamily.length > 0 && (
+                                        <>
+                                            {Object.keys(groupedStudents.groups).length > 0 && (
+                                                <tr className="bg-slate-900/80 border-b border-white/5">
+                                                    <td colSpan="3" className="px-8 py-4">
+                                                        <div className="flex items-center gap-2 text-slate-400 font-bold text-sm uppercase tracking-wider">
+                                                            <User className="w-4 h-4" />
+                                                            Individuales
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                            {groupedStudents.noFamily.map((student) => (
+                                                <SIIRow
+                                                    key={student.id}
+                                                    student={student}
+                                                    onUpdate={(updates) => updateStudentInDb(student.id, updates)}
+                                                    onDelete={() => deleteStudentInDb(student.id)}
+                                                    onCopy={handleCopy}
+                                                    copiedId={copiedId}
+                                                />
+                                            ))}
+                                        </>
+                                    )}
+                                </>
                             )}
                         </tbody>
                     </table>
@@ -212,7 +280,7 @@ const SIIRow = ({ student, onUpdate, onDelete, onCopy, copiedId }) => {
             animate={{ opacity: 1 }}
             className="group hover:bg-white/[0.02] transition-colors"
         >
-            <td className="px-6 py-4 vertical-top pt-5">
+            <td className="px-8 py-5 vertical-top">
                 <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-indigo-500/10 rounded-lg flex items-center justify-center text-indigo-400 border border-indigo-500/20 shadow-inner">
                         <User className="w-4 h-4" />
@@ -226,7 +294,7 @@ const SIIRow = ({ student, onUpdate, onDelete, onCopy, copiedId }) => {
                 </div>
             </td>
 
-            <td className="px-6 py-4">
+            <td className="px-6 py-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                     {isEditing ? (
                         <>
@@ -246,8 +314,8 @@ const SIIRow = ({ student, onUpdate, onDelete, onCopy, copiedId }) => {
                 </div>
             </td>
 
-            <td className="px-6 py-4 text-right vertical-top pt-5">
-                <div className="flex justify-end gap-1.5">
+            <td className="px-8 py-5 text-right vertical-top">
+                <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300">
                     {isEditing ? (
                         <button
                             onClick={handleSave}

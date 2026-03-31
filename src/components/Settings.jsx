@@ -1,11 +1,26 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { CreditCard, Wallet, Landmark, Plus, Trash2, Tag, ChevronDown, Check, X, Database, Download, Upload, TriangleAlert, RefreshCw, Edit2, ShoppingBag, TrendingUp } from 'lucide-react';
+import { CreditCard, Wallet, Landmark, Plus, Trash2, Tag, ChevronDown, Check, X, Database, Download, Upload, TriangleAlert, RefreshCw, Edit2, ShoppingBag, TrendingUp, Clock } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Settings = () => {
-    const { data, addPaymentMethod, updatePaymentMethod, deletePaymentMethod, addCategory, addSubcategory, updateCategory, deleteCategory, deleteSubcategory, loadData, startNewYear } = useFinance();
+    const { 
+        data, 
+        addPaymentMethod, 
+        updatePaymentMethod, 
+        deletePaymentMethod, 
+        addCategory, 
+        addSubcategory, 
+        updateCategory, 
+        deleteCategory, 
+        deleteSubcategory, 
+        loadData, 
+        startNewYear,
+        virtualDate,
+        setVirtualDate,
+        resetVirtualDate
+    } = useFinance();
     const [activeTab, setActiveTab] = useState('categories');
 
     return (
@@ -84,7 +99,14 @@ const Settings = () => {
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -20, scale: 0.98 }}
                             transition={{ duration: 0.3, ease: "easeOut" }}
+                            className="space-y-8"
                         >
+                            <VirtualClockManager
+                                virtualDate={virtualDate}
+                                setVirtualDate={setVirtualDate}
+                                resetVirtualDate={resetVirtualDate}
+                            />
+
                             <DataManagement
                                 data={data}
                                 onLoadData={loadData}
@@ -745,6 +767,80 @@ const DataManagement = ({ data, onLoadData, onStartNewYear }) => {
                         Acción Irreversible
                     </p>
                 </div>
+            </div>
+        </div>
+    );
+};
+
+const VirtualClockManager = ({ virtualDate, setVirtualDate, resetVirtualDate }) => {
+    const [inputValue, setInputValue] = useState(virtualDate ? virtualDate.toISOString().split('T')[0] : '');
+
+    const handleApply = (e) => {
+        e.preventDefault();
+        if (inputValue) {
+            // Need to handle timezone issues. Just parse it as midnight local time
+            const parts = inputValue.split('-');
+            if (parts.length === 3) {
+                const newDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                setVirtualDate(newDate);
+                alert("Reloj virtual actualizado a " + newDate.toLocaleDateString('es-CL'));
+            }
+        }
+    };
+
+    const handleReset = () => {
+        resetVirtualDate();
+        setInputValue('');
+        alert("Reloj virtual desactivado. Usando fecha real del sistema.");
+    };
+
+    return (
+        <div className="bg-slate-900/40 backdrop-blur-xl p-8 rounded-3xl border border-white/5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+
+            <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-white relative z-10">
+                <div className="p-2.5 bg-blue-500/20 rounded-xl text-blue-300 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                    <Clock className="w-5 h-5" />
+                </div>
+                Reloj Virtual (Solo Pruebas)
+            </h3>
+
+            <div className="space-y-6 relative z-10">
+                <p className="text-slate-400 text-sm leading-relaxed">
+                    Configura una fecha virtual para simular el comportamiento de la aplicación en diferentes momentos (ej. cierres de tarjeta, cobros mensuales). <span className="text-blue-400 font-bold">Si está activo, la aplicación creerá que hoy es la fecha indicada.</span>
+                </p>
+
+                <form onSubmit={handleApply} className="flex flex-col sm:flex-row gap-4">
+                    <input
+                        type="date"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        className="flex-1 px-4 py-3 rounded-xl border border-slate-700 bg-slate-950/50 text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all"
+                    />
+                    <button
+                        type="submit"
+                        disabled={!inputValue}
+                        className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-500 font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Aplicar Fecha
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleReset}
+                        disabled={!virtualDate}
+                        className="px-6 py-3 bg-slate-800 text-slate-300 border border-white/10 rounded-xl hover:bg-slate-700 transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Restablecer a Hoy
+                    </button>
+                </form>
+
+                {virtualDate && (
+                    <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl mt-4">
+                        <p className="text-blue-300 text-xs font-bold text-center flex items-center justify-center gap-2">
+                            <Clock className="w-4 h-4" /> El reloj virtual está actualmente ACTIVO. La aplicación simula la fecha: {new Date(virtualDate).toLocaleDateString('es-CL')}
+                        </p>
+                    </div>
+                )}
             </div>
         </div>
     );

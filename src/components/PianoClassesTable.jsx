@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Trash2, CheckCircle, Clock, User, DollarSign, Users, XCircle, Pencil, Timer, CheckSquare, Square } from 'lucide-react';
 
 const PianoClassesTable = ({ monthIndex }) => {
-    const { data, addPianoClass, updatePianoClass, deletePianoClass, importStudentsToMonth, importSpecificStudents } = useFinance();
+    const { data, addPianoClass, updatePianoClass, deletePianoClass, importStudentsToMonth, importSpecificStudents, getToday } = useFinance();
     const classes = data.months[monthIndex].pianoClasses || [];
     const allStudents = data.studentDb || [];
 
@@ -44,13 +44,16 @@ const PianoClassesTable = ({ monthIndex }) => {
             }
         });
 
-        // Sort families alphabetically
+        // Sort families alphabetically and students within families
         const sortedGroups = Object.keys(groups).sort().reduce((acc, key) => {
-            acc[key] = groups[key];
+            acc[key] = groups[key].sort((a, b) => (a.studentName || '').localeCompare(b.studentName || ''));
             return acc;
         }, {});
+        
+        // Sort individuals alphabetically
+        const sortedNoFamily = [...noFamily].sort((a, b) => (a.studentName || '').localeCompare(b.studentName || ''));
 
-        return { groups: sortedGroups, noFamily };
+        return { groups: sortedGroups, noFamily: sortedNoFamily };
     }, [classes]);
 
     const [newClass, setNewClass] = useState({
@@ -105,7 +108,7 @@ const PianoClassesTable = ({ monthIndex }) => {
         let paymentDate = null;
 
         if (newStatus === 'Al día') {
-            const todayDate = new Date();
+            const todayDate = getToday ? getToday() : new Date();
             const dd = String(todayDate.getDate()).padStart(2, '0');
             const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
             const yyyy = todayDate.getFullYear();
@@ -442,7 +445,7 @@ const PianoClassesTable = ({ monthIndex }) => {
                                                     key={cls.id || idx}
                                                     cls={cls}
                                                     onUpdate={(updates) => updatePianoClass(monthIndex, cls.id, updates)}
-                                                    onDelete={() => deletePianoClass(monthIndex, cls.id)}
+                                                    onDelete={() => deletePianoClass(monthIndex, cls)}
                                                     onToggleStatus={() => toggleStatus(cls)}
                                                 />
                                             ))}
@@ -468,7 +471,7 @@ const PianoClassesTable = ({ monthIndex }) => {
                                                 key={cls.id || idx}
                                                 cls={cls}
                                                 onUpdate={(updates) => updatePianoClass(monthIndex, cls.id, updates)}
-                                                onDelete={() => deletePianoClass(monthIndex, cls.id)}
+                                                onDelete={() => deletePianoClass(monthIndex, cls)}
                                                 onToggleStatus={() => toggleStatus(cls)}
                                             />
                                         ))}
