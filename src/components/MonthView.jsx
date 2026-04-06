@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import PianoClassesTable from './PianoClassesTable';
 import BudgetChart from './BudgetChart';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, TrendingUp, TrendingDown, DollarSign, ArrowLeft, CreditCard, Tag, Wallet, X, Download, Pencil, CheckCircle, Clock, PiggyBank, Target, Filter, ChevronDown, ChevronUp, Repeat } from 'lucide-react';
+import { Plus, Trash2, TrendingUp, TrendingDown, DollarSign, ArrowLeft, CreditCard, Tag, Wallet, X, Download, Pencil, CheckCircle, Clock, PiggyBank, Target, Filter, ChevronDown, ChevronUp, Repeat, Users } from 'lucide-react';
 
 const MonthView = ({ monthIndex, onBack }) => {
     const { data, addTransaction, deleteTransaction, importTransactionsFromPreviousMonth, updateTransaction, addSaving, deleteSaving, getToday } = useFinance();
