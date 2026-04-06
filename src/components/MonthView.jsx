@@ -42,6 +42,19 @@ const MonthView = ({ monthIndex, onBack }) => {
 
     const filteredTotal = filteredTransactions.reduce((acc, tx) => acc + Number(tx.amount), 0);
 
+    const txStats = useMemo(() => {
+        let paid = 0;
+        let pending = 0;
+        activeTransactions.forEach(tx => {
+            if (tx.status === 'Al día') {
+                paid += Number(tx.amount || 0);
+            } else {
+                pending += Number(tx.amount || 0);
+            }
+        });
+        return { paid, pending, total: paid + pending };
+    }, [activeTransactions]);
+
     const getMonthSummary = () => {
         const pianoTotal = monthData.pianoClasses.reduce((acc, curr) => acc + Number(curr.total), 0);
         const otherIncomes = monthData.incomes.reduce((acc, curr) => acc + Number(curr.amount), 0);
@@ -390,6 +403,48 @@ const MonthView = ({ monthIndex, onBack }) => {
                                         <span className="hidden sm:inline">Importar {activeTab === 'expenses' ? 'Gastos' : 'Ingresos'}</span>
                                     </button>
                                 )}
+                            </div>
+                        </div>
+
+                        {/* Stats Section for Incomes and Expenses */}
+                        <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-950/20 p-6 rounded-2xl border border-white/5 shadow-inner">
+                            <div className="bg-slate-900/50 rounded-2xl p-5 border border-white/5 border-l-4 border-l-emerald-500/50 flex items-center justify-between shadow-lg shadow-black/20">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                        <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                                        Pagados
+                                    </p>
+                                    <p className="text-2xl lg:text-3xl font-bold text-white font-mono">${txStats.paid.toLocaleString('es-CL')}</p>
+                                </div>
+                                <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
+                                    <DollarSign className="w-6 h-6" />
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-900/50 rounded-2xl p-5 border border-white/5 border-l-4 border-l-amber-500/50 flex items-center justify-between shadow-lg shadow-black/20">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                        <Clock className="w-3.5 h-3.5 text-amber-500" />
+                                        Pendientes
+                                    </p>
+                                    <p className="text-2xl lg:text-3xl font-bold text-white font-mono">${txStats.pending.toLocaleString('es-CL')}</p>
+                                </div>
+                                <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 border border-amber-500/20">
+                                    <DollarSign className="w-6 h-6 opacity-70" />
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-900/50 rounded-2xl p-5 border border-white/5 border-l-4 border-l-indigo-500/50 flex items-center justify-between shadow-lg shadow-black/20">
+                                <div>
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                        <Users className="w-3.5 h-3.5 text-indigo-500" />
+                                        {activeTab === 'expenses' ? 'Total Gastos' : 'Total Ingresos'}
+                                    </p>
+                                    <p className="text-2xl lg:text-3xl font-bold text-white font-mono">${txStats.total.toLocaleString('es-CL')}</p>
+                                </div>
+                                <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+                                    <DollarSign className="w-6 h-6" />
+                                </div>
                             </div>
                         </div>
 
