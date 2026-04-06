@@ -56,6 +56,19 @@ const PianoClassesTable = ({ monthIndex }) => {
         return { groups: sortedGroups, noFamily: sortedNoFamily };
     }, [classes]);
 
+    const stats = useMemo(() => {
+        let paid = 0;
+        let pending = 0;
+        classes.forEach(c => {
+            if (c.status === 'Al día') {
+                paid += Number(c.total || 0);
+            } else {
+                pending += Number(c.total || 0);
+            }
+        });
+        return { paid, pending, total: paid + pending };
+    }, [classes]);
+
     const [newClass, setNewClass] = useState({
         studentName: '',
         rate: 35000,
@@ -292,6 +305,48 @@ const PianoClassesTable = ({ monthIndex }) => {
                     >
                         {isAdding ? <><XCircle className="w-4 h-4" /> Cancelar</> : <><Plus className="w-4 h-4" /> Nuevo</>}
                     </button>
+                </div>
+            </div>
+
+            {/* Stats Section */}
+            <div className="px-8 py-6 grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-white/5 bg-slate-950/20">
+                <div className="bg-slate-900/50 rounded-2xl p-5 border border-white/5 border-l-4 border-l-emerald-500/50 flex items-center justify-between shadow-lg shadow-black/20">
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                            <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                            Pagados
+                        </p>
+                        <p className="text-2xl lg:text-3xl font-bold text-white font-mono">${stats.paid.toLocaleString('es-CL')}</p>
+                    </div>
+                    <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
+                        <DollarSign className="w-6 h-6" />
+                    </div>
+                </div>
+
+                <div className="bg-slate-900/50 rounded-2xl p-5 border border-white/5 border-l-4 border-l-amber-500/50 flex items-center justify-between shadow-lg shadow-black/20">
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-amber-500" />
+                            Pendientes
+                        </p>
+                        <p className="text-2xl lg:text-3xl font-bold text-white font-mono">${stats.pending.toLocaleString('es-CL')}</p>
+                    </div>
+                    <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 border border-amber-500/20">
+                        <DollarSign className="w-6 h-6 opacity-70" />
+                    </div>
+                </div>
+
+                <div className="bg-slate-900/50 rounded-2xl p-5 border border-white/5 border-l-4 border-l-indigo-500/50 flex items-center justify-between shadow-lg shadow-black/20">
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                            <Users className="w-3.5 h-3.5 text-indigo-500" />
+                            Total Mensual
+                        </p>
+                        <p className="text-2xl lg:text-3xl font-bold text-white font-mono">${stats.total.toLocaleString('es-CL')}</p>
+                    </div>
+                    <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
+                        <DollarSign className="w-6 h-6" />
+                    </div>
                 </div>
             </div>
 
