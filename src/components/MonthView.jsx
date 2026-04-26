@@ -605,8 +605,8 @@ const MonthView = ({ monthIndex, onBack }) => {
                                                 OK
                                             </button>
                                         </div>
-                                        {activeTab === 'expenses' && (
-                                            <div className="flex gap-2">
+                                        <div className="flex gap-2">
+                                            {activeTab === 'expenses' && (
                                                 <select
                                                     className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950/70 text-slate-300 text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
                                                     value={newTransaction.paymentMethodId}
@@ -617,19 +617,19 @@ const MonthView = ({ monthIndex, onBack }) => {
                                                         <option key={method.id} value={method.id}>{method.name}</option>
                                                     ))}
                                                 </select>
-                                                <label className="flex items-center gap-2 px-3 py-2.5 bg-slate-950/70 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-800 transition-colors w-full whitespace-nowrap">
-                                                    <input
-                                                        type="checkbox"
-                                                        className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500/50 focus:ring-offset-0 focus:ring-1"
-                                                        checked={newTransaction.isFixed}
-                                                        onChange={e => setNewTransaction({ ...newTransaction, isFixed: e.target.checked })}
-                                                    />
-                                                    <span className="text-sm font-medium text-slate-300 flex items-center gap-1.5">
-                                                        <Repeat className="w-3.5 h-3.5 text-indigo-400" /> Fijo Mensual
-                                                    </span>
-                                                </label>
-                                            </div>
-                                        )}
+                                            )}
+                                            <label className={`flex items-center gap-2 px-3 py-2.5 bg-slate-950/70 border border-slate-700 rounded-xl cursor-pointer hover:bg-slate-800 transition-colors whitespace-nowrap ${activeTab === 'expenses' ? 'w-full' : 'w-auto'}`}>
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500/50 focus:ring-offset-0 focus:ring-1"
+                                                    checked={newTransaction.isFixed}
+                                                    onChange={e => setNewTransaction({ ...newTransaction, isFixed: e.target.checked })}
+                                                />
+                                                <span className="text-sm font-medium text-slate-300 flex items-center gap-1.5">
+                                                    <Repeat className="w-3.5 h-3.5 text-indigo-400" /> Fijo Mensual
+                                                </span>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </form>
@@ -780,26 +780,24 @@ const TransactionRow = ({ tx, type, categories, paymentMethods, onUpdate, onDele
                         {categories.filter(c => c.type === type).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
                     {type === 'expense' && (
-                        <>
-                            <select
-                                className="px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white text-xs"
-                                value={editData.paymentMethodId}
-                                onChange={e => setEditData({ ...editData, paymentMethodId: e.target.value })}
-                            >
-                                <option value="">Medio de Pago</option>
-                                {paymentMethods.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-                            </select>
-                            <label className="flex items-center gap-2 px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-800 transition-colors">
-                                <input
-                                    type="checkbox"
-                                    className="w-3.5 h-3.5 rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500/50"
-                                    checked={editData.isFixed}
-                                    onChange={e => setEditData({ ...editData, isFixed: e.target.checked })}
-                                />
-                                <span className="text-xs font-medium text-slate-300">Fijo / Mensual</span>
-                            </label>
-                        </>
+                        <select
+                            className="px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white text-xs"
+                            value={editData.paymentMethodId}
+                            onChange={e => setEditData({ ...editData, paymentMethodId: e.target.value })}
+                        >
+                            <option value="">Medio de Pago</option>
+                            {paymentMethods.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                        </select>
                     )}
+                    <label className="flex items-center gap-2 px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-800 transition-colors">
+                        <input
+                            type="checkbox"
+                            className="w-3.5 h-3.5 rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500/50"
+                            checked={editData.isFixed}
+                            onChange={e => setEditData({ ...editData, isFixed: e.target.checked })}
+                        />
+                        <span className="text-xs font-medium text-slate-300">Fijo / Mensual</span>
+                    </label>
                     <div className="flex justify-end gap-2 items-center">
                         <button onClick={handleSave} className="p-2 text-emerald-400 hover:bg-emerald-500/10 rounded-lg"><CheckCircle className="w-5 h-5" /></button>
                         <button onClick={() => setIsEditing(false)} className="p-2 text-slate-500 hover:bg-white/5 rounded-lg"><X className="w-5 h-5" /></button>
