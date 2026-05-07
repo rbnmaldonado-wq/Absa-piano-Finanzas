@@ -33,7 +33,16 @@ const MonthView = ({ monthIndex, onBack }) => {
 
     const hasActiveFilters = selectedCategoryIds.length > 0 || selectedPaymentMethodIds.length > 0;
 
-    const activeTransactions = activeTab === 'expenses' ? monthData.expenses : (activeTab === 'incomes' ? monthData.incomes : []);
+    const activeTransactions = activeTab === 'expenses' 
+        ? [
+            ...monthData.expenses,
+            ...(monthData.savings || []).map(s => ({
+                ...s,
+                isSaving: true,
+                status: 'Al día',
+            }))
+        ] 
+        : (activeTab === 'incomes' ? monthData.incomes : []);
     const filteredTransactions = activeTransactions.filter(tx => {
         const categoryMatch = selectedCategoryIds.length === 0 || selectedCategoryIds.includes(Number(tx.categoryId));
         const paymentMethodMatch = activeTab !== 'expenses' || selectedPaymentMethodIds.length === 0 || selectedPaymentMethodIds.includes(Number(tx.paymentMethodId));
@@ -75,6 +84,7 @@ const MonthView = ({ monthIndex, onBack }) => {
         description: '',
         amount: '',
         type: 'ahorro',
+        paymentMethodId: '',
         date: (() => {
             const today = getToday();
             const d = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
@@ -87,7 +97,7 @@ const MonthView = ({ monthIndex, onBack }) => {
         e.preventDefault();
         if (!newSaving.amount) return;
         addSaving(monthIndex, newSaving);
-        setNewSaving({ description: '', amount: '', type: 'ahorro', date: (() => {
+        setNewSaving({ description: '', amount: '', type: 'ahorro', paymentMethodId: '', date: (() => {
             const today = getToday();
             const d = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
             return d.toISOString().split('T')[0];
@@ -252,7 +262,7 @@ const MonthView = ({ monthIndex, onBack }) => {
                         </div>
 
                         {isAddingSaving && (
-                            <form onSubmit={handleAddSaving} className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-950/40 p-6 rounded-2xl border border-white/5 shadow-inner">
+                            <form onSubmit={handleAddSaving} className="mb-8 grid grid-cols-1 md:grid-cols-5 gap-4 bg-slate-950/40 p-6 rounded-2xl border border-white/5 shadow-inner">
                                 <input
                                     type="date"
                                     className="px-4 py-3 rounded-xl border border-slate-700 bg-slate-950/50 text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition-all"
@@ -275,6 +285,16 @@ const MonthView = ({ monthIndex, onBack }) => {
                                     <option value="ahorro">💰 Ahorro</option>
                                     <option value="deuda">💳 Pago de Deuda</option>
                                     <option value="inversion">📈 Inversión</option>
+                                </select>
+                                <select
+                                    className="px-4 py-3 rounded-xl border border-slate-700 bg-slate-950/50 text-white focus:ring-2 focus:ring-teal-500/50 outline-none transition-all"
+                                    value={newSaving.paymentMethodId}
+                                    onChange={e => setNewSaving({ ...newSaving, paymentMethodId: e.target.value })}
+                                >
+                                    <option value="">Medio de Pago</option>
+                                    {(data.paymentMethods || []).map(method => (
+                                        <option key={method.id} value={method.id}>{method.name}</option>
+                                    ))}
                                 </select>
                                 <div className="flex gap-2">
                                     <input
@@ -303,6 +323,7 @@ const MonthView = ({ monthIndex, onBack }) => {
                             {(monthData.savings || []).map((saving, idx) => {
                                 const typeLabels = { ahorro: '💰 Ahorro', deuda: '💳 Deuda', inversion: '📈 Inversión' };
                                 const typeColors = { ahorro: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', deuda: 'bg-amber-500/10 text-amber-400 border-amber-500/30', inversion: 'bg-blue-500/10 text-blue-400 border-blue-500/30' };
+                                const paymentMethod = data.paymentMethods?.find(m => m.id == saving.paymentMethodId);
                                 return (
                                     <div key={saving.id || idx} className="flex justify-between items-center p-4 hover:bg-white/5 rounded-2xl transition-all group border border-transparent hover:border-white/5">
                                         <div className="flex items-center gap-4">
@@ -315,7 +336,16 @@ const MonthView = ({ monthIndex, onBack }) => {
                                             <p className="font-bold text-slate-200">{saving.description || 'Sin descripción'}</p>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <span className="font-bold text-white text-lg font-mono">${Number(saving.amount).toLocaleString('es-CL')}</span>
+                                            <div className="flex flex-col items-end gap-1.5 min-w-[100px]">
+                                                <span className="font-bold text-white text-lg font-mono">
+                                                    ${Number(saving.amount).toLocaleString('es-CL')}
+                                                </span>
+                                                {paymentMethod && (
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full text-white tracking-wide shadow-sm ${paymentMethod.color}`}>
+                                                        {paymentMethod.name}
+                                                    </span>
+                                                )}
+                                            </div>
                                             <button
                                                 onClick={() => deleteSaving(monthIndex, saving.id)}
                                                 className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
@@ -675,6 +705,38 @@ const MonthView = ({ monthIndex, onBack }) => {
 
 const TransactionRow = ({ tx, type, categories, paymentMethods, onUpdate, onDelete }) => {
     const [isEditing, setIsEditing] = useState(false);
+
+    if (tx.isSaving) {
+        const paymentMethod = paymentMethods.find(m => m.id == tx.paymentMethodId);
+        const typeLabels = { ahorro: '💰 Ahorro', deuda: '💳 Deuda', inversion: '📈 Inversión' };
+        const typeColors = { ahorro: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', deuda: 'bg-amber-500/10 text-amber-400 border-amber-500/30', inversion: 'bg-blue-500/10 text-blue-400 border-blue-500/30' };
+
+        return (
+            <div className="flex justify-between items-center p-4 hover:bg-white/5 rounded-2xl transition-all group border border-transparent hover:border-white/5 bg-teal-500/5 shadow-sm">
+                <div className="flex items-center gap-4">
+                    <div className="text-[11px] text-slate-500 font-mono bg-slate-950/50 px-2.5 py-1 rounded-lg border border-white/5">
+                        {tx.date ? tx.date.split('-').reverse().join('/') : '-'}
+                    </div>
+                    <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${typeColors[tx.type] || typeColors.ahorro}`}>
+                        {typeLabels[tx.type] || '💰 Ahorro'}
+                    </div>
+                    <p className="font-bold text-slate-200">{tx.description || 'Sin descripción'}</p>
+                </div>
+                <div className="flex items-center gap-6">
+                    <div className="flex flex-col items-end gap-1.5 min-w-[100px]">
+                        <span className="font-bold text-white text-lg font-mono">
+                            ${Number(tx.amount).toLocaleString('es-CL')}
+                        </span>
+                        {paymentMethod && (
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full text-white tracking-wide shadow-sm ${paymentMethod.color}`}>
+                                {paymentMethod.name}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
     const [editData, setEditData] = useState({
         description: tx.description || '',
         amount: tx.amount || '',
