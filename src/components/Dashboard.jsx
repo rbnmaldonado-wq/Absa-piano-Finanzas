@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useEffect } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { motion } from 'framer-motion';
@@ -6,7 +5,7 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell
 } from 'recharts';
-import { Wallet, TrendingUp, TrendingDown, Music, Clock } from 'lucide-react';
+import { Wallet, TrendingUp, TrendingDown, Clock, PiggyBank, Briefcase } from 'lucide-react';
 
 const Dashboard = () => {
     const { data } = useFinance();
@@ -20,12 +19,17 @@ const Dashboard = () => {
     const summary = useMemo(() => {
         let income = 0;
         let expense = 0;
+        let totalSavings = 0;
         const categoryExpenses = {};
+        const defaultSalary = Number(data.salarySettings?.defaultSalary || 0);
 
         const monthlyData = data.months.map(m => {
-            const mIncome = m.incomes.reduce((acc, curr) => acc + Number(curr.amount), 0)
-                + m.pianoClasses.reduce((acc, curr) => acc + Number(curr.total), 0);
+            const mSalary = (m.salary !== null && m.salary !== undefined) ? Number(m.salary) : defaultSalary;
+            const otherIncomes = m.incomes.reduce((acc, curr) => acc + Number(curr.amount), 0);
+            const mIncome = mSalary + otherIncomes;
+
             const mExpense = m.expenses.reduce((acc, curr) => acc + Number(curr.amount), 0);
+            const mSavings = (m.savings || []).reduce((acc, curr) => acc + Number(curr.amount), 0);
 
             // Aggregate expenses by category
             m.expenses.forEach(e => {
@@ -34,9 +38,7 @@ const Dashboard = () => {
                 categoryExpenses[cat] = (categoryExpenses[cat] || 0) + Number(e.amount);
             });
 
-            const mSavings = (m.savings || []).reduce((acc, curr) => acc + Number(curr.amount), 0);
-
-            // Aggregate savings as expenses in pie chart
+            // Aggregate savings in breakdown
             (m.savings || []).forEach(s => {
                 const typeLabels = { ahorro: '💰 Ahorro', deuda: '💳 Pago de Deuda', inversion: '📈 Inversión' };
                 const cat = typeLabels[s.type] || '💰 Ahorro';
@@ -45,9 +47,10 @@ const Dashboard = () => {
 
             income += mIncome;
             expense += (mExpense + mSavings);
+            totalSavings += mSavings;
 
             return {
-                name: m.name.substring(0, 3), // Jan, Feb...
+                name: m.name.substring(0, 3), // Ene, Feb...
                 fullMonth: m.name,
                 Income: mIncome,
                 Expense: mExpense + mSavings
@@ -59,7 +62,14 @@ const Dashboard = () => {
             value: categoryExpenses[key]
         })).sort((a, b) => b.value - a.value);
 
-        return { totalIncome: income, totalExpense: expense, balance: income - expense, chartData: monthlyData, pieData };
+        return {
+            totalIncome: income,
+            totalExpense: expense,
+            totalSavings,
+            balance: income - expense,
+            chartData: monthlyData,
+            pieData
+        };
     }, [data]);
 
     const COLORS = ['#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#6366f1', '#14b8a6', '#f43f5e'];
@@ -72,9 +82,14 @@ const Dashboard = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
             >
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                    Dashboard Financiero {data.year}
-                </h1>
+                <div>
+                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                        Planificación Financiera {data.year}
+                    </h1>
+                    <p className="text-sm text-slate-400 mt-1">
+                        Control de sueldo directivo, presupuesto mensual y metas de ahorro
+                    </p>
+                </div>
                 
                 {/* Visual Clock */}
                 <div className="flex items-center gap-3 px-4 py-2 bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl shadow-lg shadow-black/20">
@@ -90,10 +105,10 @@ const Dashboard = () => {
                 </div>
             </motion.div>
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* KPI Cards (4 cards) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <KPICard
-                    title="Ingresos Totales"
+                    title="Ingresos (Sueldo)"
                     amount={summary.totalIncome}
                     icon={TrendingUp}
                     color="text-emerald-500"
@@ -107,6 +122,14 @@ const Dashboard = () => {
                     color="text-rose-500"
                     bg="bg-rose-500/10"
                     delay={0.2}
+                />
+                <KPICard
+                    title="Ahorro / Inversión"
+                    amount={summary.totalSavings}
+                    icon={PiggyBank}
+                    color="text-teal-500"
+                    bg="bg-teal-500/10"
+                    delay={0.25}
                 />
                 <KPICard
                     title="Balance Anual"
@@ -130,7 +153,7 @@ const Dashboard = () => {
                     <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
                     <h3 className="text-lg font-bold mb-6 flex items-center gap-3 text-white">
                         <div className="p-2 bg-indigo-500/20 rounded-lg text-indigo-400 border border-indigo-500/30">
-                            <Music className="w-5 h-5" />
+                            <Briefcase className="w-5 h-5" />
                         </div>
                         Flujo de Caja Mensual
                     </h3>
@@ -152,17 +175,18 @@ const Dashboard = () => {
                                     }}
                                     itemStyle={{ fontSize: '13px', fontWeight: 600 }}
                                     labelStyle={{ color: '#94a3b8', marginBottom: '8px', fontSize: '12px' }}
+                                    formatter={(value) => [`$${Number(value).toLocaleString('es-CL')}`, '']}
                                 />
                                 <Bar
                                     dataKey="Income"
-                                    name="Ingresos"
+                                    name="Ingresos (Sueldo)"
                                     fill="#10b981"
                                     radius={[4, 4, 0, 0]}
                                     barSize={20}
                                 />
                                 <Bar
                                     dataKey="Expense"
-                                    name="Gastos"
+                                    name="Gastos y Ahorro"
                                     fill="#f43f5e"
                                     radius={[4, 4, 0, 0]}
                                     barSize={20}
@@ -184,7 +208,7 @@ const Dashboard = () => {
                         <div className="p-2 bg-rose-500/20 rounded-lg text-rose-400 border border-rose-500/30">
                             <TrendingDown className="w-5 h-5" />
                         </div>
-                        Distribución de Gastos
+                        Distribución de Gastos y Ahorro
                     </h3>
                     <div className="h-80 w-full relative">
                         {summary.pieData.length > 0 ? (
@@ -208,11 +232,11 @@ const Dashboard = () => {
                                             borderRadius: '16px',
                                             border: '1px solid rgba(255,255,255,0.1)',
                                             boxShadow: '0 20px 40px -10px rgba(0,0,0,0.5)',
-                                            backgroundColor: '#0f172a', // Solid dark background
+                                            backgroundColor: '#0f172a',
                                             padding: '12px',
                                             color: '#fff'
                                         }}
-                                        itemStyle={{ color: '#fff', fontSize: '13px', fontWeight: 600 }} // Explicit white text
+                                        itemStyle={{ color: '#fff', fontSize: '13px', fontWeight: 600 }}
                                         formatter={(value) => [`$${value.toLocaleString('es-CL')}`, '']}
                                     />
                                 </PieChart>
@@ -223,10 +247,10 @@ const Dashboard = () => {
                                 <p>No hay gastos registrados</p>
                             </div>
                         )}
-                        {/* Centered Total or Label */}
+                        {/* Centered Total */}
                         {summary.pieData.length > 0 && (
                             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total</span>
+                                <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Salidas</span>
                                 <span className="text-xl font-bold text-white">${summary.totalExpense.toLocaleString('es-CL')}</span>
                             </div>
                         )}
@@ -246,13 +270,13 @@ const KPICard = ({ title, amount, icon: Icon, color, bg, delay }) => {
             className="bg-slate-900/40 backdrop-blur-xl p-6 rounded-3xl border border-white/5 hover:border-indigo-500/30 transition-all duration-300 group shadow-2xl shadow-black/20 relative overflow-hidden"
         >
             <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
-            <div className="flex items-center justify-between mb-6">
-                <div className={`p-3.5 rounded-2xl ${bg} group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon className={`w-6 h-6 ${color}`} />
+            <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 rounded-2xl ${bg} group-hover:scale-110 transition-transform duration-300`}>
+                    <Icon className={`w-5 h-5 ${color}`} />
                 </div>
             </div>
-            <h3 className="text-slate-400 text-sm font-semibold tracking-wide uppercase relative z-10">{title}</h3>
-            <p className="text-3xl font-bold mt-2 text-white tracking-tight relative z-10">
+            <h3 className="text-slate-400 text-xs font-semibold tracking-wide uppercase relative z-10">{title}</h3>
+            <p className="text-2xl font-bold mt-1 text-white tracking-tight relative z-10 font-mono">
                 ${amount.toLocaleString('es-CL')}
             </p>
         </motion.div>

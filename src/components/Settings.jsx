@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { CreditCard, Wallet, Landmark, Plus, Trash2, Tag, ChevronDown, Check, X, Database, Download, Upload, TriangleAlert, RefreshCw, Edit2, ShoppingBag, TrendingUp, Clock } from 'lucide-react';
-
+import {
+    CreditCard, Wallet, Landmark, Plus, Trash2, Tag, ChevronDown, Check, X,
+    Database, Download, Upload, TriangleAlert, RefreshCw, Edit2, ShoppingBag,
+    TrendingUp, Clock, Briefcase, DollarSign
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Settings = () => {
@@ -19,18 +22,27 @@ const Settings = () => {
         startNewYear,
         virtualDate,
         setVirtualDate,
-        resetVirtualDate
+        resetVirtualDate,
+        updateSalarySettings
     } = useFinance();
-    const [activeTab, setActiveTab] = useState('categories');
+
+    const [activeTab, setActiveTab] = useState('salary');
 
     return (
-
         <div className="space-y-8 relative">
             <div className="relative z-10">
                 <h2 className="text-3xl font-bold text-white mb-8 tracking-tight">Configuración</h2>
 
                 {/* Tabs - Glass Style */}
-                <div className="flex gap-2 p-1.5 bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-2xl w-fit mb-8 shadow-2xl shadow-black/20">
+                <div className="flex gap-2 p-1.5 bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-2xl w-fit mb-8 shadow-2xl shadow-black/20 flex-wrap">
+                    <button
+                        onClick={() => setActiveTab('salary')}
+                        className={`relative px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 ${activeTab === 'salary'
+                            ? 'bg-indigo-500/20 text-indigo-300 shadow-[0_0_20px_rgba(99,102,241,0.3)] border border-indigo-500/30'
+                            : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
+                    >
+                        Sueldo y Planificación
+                    </button>
                     <button
                         onClick={() => setActiveTab('paymentMethods')}
                         className={`relative px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 ${activeTab === 'paymentMethods'
@@ -58,7 +70,22 @@ const Settings = () => {
                 </div>
 
                 <AnimatePresence mode="wait">
-                    {activeTab === 'paymentMethods' ? (
+                    {activeTab === 'salary' && (
+                        <motion.div
+                            key="salary"
+                            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.98 }}
+                            transition={{ duration: 0.3, ease: "easeOut" }}
+                        >
+                            <SalaryManager
+                                salarySettings={data.salarySettings || { defaultSalary: 0 }}
+                                onUpdate={updateSalarySettings}
+                            />
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'paymentMethods' && (
                         <motion.div
                             key="paymentMethods"
                             initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -73,7 +100,9 @@ const Settings = () => {
                                 onDelete={deletePaymentMethod}
                             />
                         </motion.div>
-                    ) : (
+                    )}
+
+                    {activeTab === 'categories' && (
                         <motion.div
                             key="categories"
                             initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -120,6 +149,122 @@ const Settings = () => {
     );
 };
 
+const SalaryManager = ({ salarySettings, onUpdate }) => {
+    const [defaultSalary, setDefaultSalary] = useState(
+        (salarySettings?.defaultSalary !== undefined && salarySettings.defaultSalary !== null)
+            ? salarySettings.defaultSalary.toString()
+            : '0'
+    );
+    const [savedNotice, setSavedNotice] = useState(false);
+
+    const handleSave = (e) => {
+        e.preventDefault();
+        const num = Number(defaultSalary);
+        onUpdate({ defaultSalary: isNaN(num) ? 0 : num });
+        setSavedNotice(true);
+        setTimeout(() => setSavedNotice(false), 3000);
+    };
+
+    return (
+        <div className="grid gap-8 md:grid-cols-2">
+            {/* Salary Setup Card */}
+            <div className="bg-slate-900/40 backdrop-blur-xl p-8 rounded-3xl border border-white/5 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-white relative z-10">
+                    <div className="p-2.5 bg-indigo-500/20 rounded-xl text-indigo-300 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
+                        <Briefcase className="w-5 h-5" />
+                    </div>
+                    Sueldo Base de Director
+                </h3>
+
+                <p className="text-slate-400 text-sm leading-relaxed mb-6 relative z-10">
+                    Define el sueldo mensual líquido que recibes de tu empresa. Este monto se cargará automáticamente en cada uno de los 12 meses del año como la base de tu presupuesto 50/30/20.
+                </p>
+
+                <form onSubmit={handleSave} className="space-y-6 relative z-10">
+                    <div className="space-y-2">
+                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">
+                            Monto Mensual Líquido ($CLP)
+                        </label>
+                        <div className="relative">
+                            <DollarSign className="w-5 h-5 absolute left-4 top-3.5 text-slate-500" />
+                            <input
+                                type="number"
+                                required
+                                min="0"
+                                placeholder="Ej: 1800000"
+                                className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-700 bg-slate-950/50 text-white font-mono font-bold text-lg focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
+                                value={defaultSalary}
+                                onChange={(e) => setDefaultSalary(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl hover:from-indigo-500 hover:to-violet-500 font-bold shadow-lg shadow-indigo-500/20 transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                    >
+                        <Check className="w-5 h-5" />
+                        Guardar Sueldo Predeterminado
+                    </button>
+
+                    {savedNotice && (
+                        <motion.p
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-emerald-400 text-sm font-bold text-center flex items-center justify-center gap-2"
+                        >
+                            <Check className="w-4 h-4" /> Sueldo predeterminado guardado correctamente
+                        </motion.p>
+                    )}
+                </form>
+            </div>
+
+            {/* Explanation / Rule Card */}
+            <div className="bg-slate-900/40 backdrop-blur-xl p-8 rounded-3xl border border-white/5 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-white relative z-10">
+                    <div className="p-2.5 bg-emerald-500/20 rounded-xl text-emerald-300 border border-emerald-500/30">
+                        <TrendingUp className="w-5 h-5" />
+                    </div>
+                    ¿Cómo funciona tu planificación?
+                </h3>
+
+                <div className="space-y-4 text-sm text-slate-300 relative z-10 leading-relaxed">
+                    <div className="p-4 bg-slate-950/50 rounded-2xl border border-white/5 space-y-2">
+                        <p className="font-bold text-white text-xs uppercase tracking-wider text-indigo-400">
+                            1. Ingreso Personal Fijo
+                        </p>
+                        <p className="text-xs text-slate-400">
+                            Tus ingresos personales provienen de este sueldo. Las clases de piano de los alumnos quedan como gestión académica y ya <strong>no se mezclan</strong> con tu dinero personal.
+                        </p>
+                    </div>
+
+                    <div className="p-4 bg-slate-950/50 rounded-2xl border border-white/5 space-y-2">
+                        <p className="font-bold text-white text-xs uppercase tracking-wider text-purple-400">
+                            2. Ajustes Mensuales Flexibles
+                        </p>
+                        <p className="text-xs text-slate-400">
+                            Si en un mes recibes un bono o aguinaldo, puedes modificar el sueldo de ese mes específico dentro de la vista mensual sin alterar los demás meses.
+                        </p>
+                    </div>
+
+                    <div className="p-4 bg-slate-950/50 rounded-2xl border border-white/5 space-y-2">
+                        <p className="font-bold text-white text-xs uppercase tracking-wider text-emerald-400">
+                            3. Regla 50 / 30 / 20 Automática
+                        </p>
+                        <p className="text-xs text-slate-400">
+                            Tu sueldo se distribuye automáticamente en: <strong>50%</strong> para gastos básicos (arriendo, servicios, alimentación), <strong>30%</strong> para estilo de vida y <strong>20%</strong> para ahorro e inversión.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const PaymentMethodsManager = ({ paymentMethods, onAdd, onUpdate, onDelete }) => {
     const [newMethod, setNewMethod] = useState({ name: '', type: 'credit', color: 'bg-indigo-500', cutoffDate: '' });
 
@@ -142,9 +287,8 @@ const PaymentMethodsManager = ({ paymentMethods, onAdd, onUpdate, onDelete }) =>
 
     return (
         <div className="grid gap-8 md:grid-cols-2">
-            {/* List - Deep Glass Card */}
+            {/* List */}
             <div className="bg-slate-900/40 backdrop-blur-xl p-8 rounded-3xl border border-white/5 relative overflow-hidden group">
-                {/* Glow Effect on Hover */}
                 <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
 
                 <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-white relative z-10">
@@ -165,7 +309,7 @@ const PaymentMethodsManager = ({ paymentMethods, onAdd, onUpdate, onDelete }) =>
                 </div>
             </div>
 
-            {/* Add Form - Deep Glass Card */}
+            {/* Add Form */}
             <div className="bg-slate-900/40 backdrop-blur-xl p-8 rounded-3xl border border-white/5 h-fit relative overflow-hidden group">
                 <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
 
@@ -368,7 +512,7 @@ const CategoriesManager = ({ categories, onAddCategory, onAddSubcategory, onUpda
                     </div>
                     <div>
                         <h3 className="text-xl font-bold text-white">Categorías de Gastos</h3>
-                        <p className="text-xs text-slate-400">Organiza tus registros con categorías personalizadas</p>
+                        <p className="text-xs text-slate-400">Organiza tus registros con categorías personalizadas y bandas 50/30</p>
                     </div>
                 </div>
                 <button
@@ -491,9 +635,6 @@ const CategoryCard = ({ category, onAddSubcategory, onUpdateCategory, onDeleteCa
                 onClick={() => !isEditing && setIsExpanded(!isExpanded)}
                 className="w-full flex items-center justify-between p-5 cursor-pointer relative"
             >
-                {/* Subtle Inner Glow on Hover */}
-                <div className={`absolute inset-0 bg-gradient-to-r ${category.color.replace('bg-', 'from-')}/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 pointer-events-none`}></div>
-
                 <div className="flex items-center gap-4 flex-1 relative z-10">
                     <div className={`w-12 h-12 rounded-xl ${category.color} flex items-center justify-center text-white shrink-0 shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-white/10`}>
                         <Tag className="w-5 h-5" />
@@ -527,7 +668,6 @@ const CategoryCard = ({ category, onAddSubcategory, onUpdateCategory, onDeleteCa
                                 title="Editar nombre"
                             >
                                 <Edit2 className="w-4 h-4" />
-
                             </button>
                             {/* Budget Band Toggle */}
                             <div className="flex items-center gap-1 ml-auto" onClick={e => e.stopPropagation()}>
@@ -584,10 +724,7 @@ const CategoryCard = ({ category, onAddSubcategory, onUpdateCategory, onDeleteCa
                         <div className="p-5 pt-3">
                             <div className="flex flex-wrap gap-3 mb-6 mt-2">
                                 {(category.subcategories || []).map((sub, idx) => (
-                                    <div key={idx} className="group/chip relative flex items-center gap-2 pl-3 pr-1.5 py-1.5 bg-slate-900/50 rounded-full border border-white/10 overflow-hidden transition-all hover:border-indigo-500/30 hover:shadow-[0_0_15px_rgba(99,102,241,0.15)]">
-                                        {/* Colored Glow Background */}
-                                        <div className={`absolute inset-0 ${category.color} opacity-[0.08] group-hover/chip:opacity-20 transition-opacity duration-300`}></div>
-
+                                    <div key={idx} className="group/chip relative flex items-center gap-2 pl-3 pr-1.5 py-1.5 bg-slate-900/50 rounded-full border border-white/10 overflow-hidden transition-all hover:border-indigo-500/30">
                                         <span className="relative z-10 text-xs font-semibold text-slate-300 group-hover/chip:text-white transition-colors tracking-wide">
                                             {sub}
                                         </span>
@@ -611,11 +748,11 @@ const CategoryCard = ({ category, onAddSubcategory, onUpdateCategory, onDeleteCa
                                 <input
                                     type="text"
                                     placeholder="Nueva subcategoría..."
-                                    className="flex-1 px-4 py-2.5 text-sm rounded-xl border border-slate-700 bg-slate-900/60 text-slate-200 focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 outline-none placeholder:text-slate-600 transition-all"
+                                    className="flex-1 px-4 py-2.5 text-sm rounded-xl border border-slate-700 bg-slate-900/60 text-slate-200 focus:ring-2 focus:ring-indigo-500/50 outline-none placeholder:text-slate-600 transition-all"
                                     value={newSub}
                                     onChange={e => setNewSub(e.target.value)}
                                 />
-                                <button type="submit" className="px-4 py-2 bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 rounded-xl hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] transition-all duration-300">
+                                <button type="submit" className="px-4 py-2 bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 rounded-xl hover:bg-indigo-600 hover:text-white transition-all duration-300">
                                     <Plus className="w-5 h-5" />
                                 </button>
                             </form>
@@ -655,7 +792,6 @@ const DataManagement = ({ data, onLoadData, onStartNewYear }) => {
         reader.onload = (event) => {
             try {
                 const newData = JSON.parse(event.target.result);
-                // Basic validation
                 if (!newData.months || !newData.categories) {
                     throw new Error("Formato de archivo inválido");
                 }
@@ -669,12 +805,12 @@ const DataManagement = ({ data, onLoadData, onStartNewYear }) => {
             }
         };
         reader.readAsText(file);
-        e.target.value = null; // Reset input
+        e.target.value = null;
     };
 
     const handleNewYear = () => {
-        if (window.confirm("ATENCIÓN: Esto iniciará un nuevo año fiscal.\n\n1. Se generará un respaldo automático de tus datos actuales.\n2. Se borrarán todos los registros mensuales (ingresos, gastos, clases).\n3. Se mantendrán tus alumnos, categorías y configuraciones.\n\n¿Deseas continuar?")) {
-            handleDownload(); // Auto backup
+        if (window.confirm("ATENCIÓN: Esto iniciará un nuevo año fiscal.\n\n1. Se generará un respaldo automático de tus datos actuales.\n2. Se borrarán todos los registros mensuales (ingresos, gastos, clases).\n3. Se mantendrán tu sueldo base, categorías, alumnos y configuraciones.\n\n¿Deseas continuar?")) {
+            handleDownload();
             setTimeout(() => {
                 onStartNewYear();
                 alert("¡Feliz Año Nuevo! Los registros han sido reiniciados.");
@@ -745,13 +881,13 @@ const DataManagement = ({ data, onLoadData, onStartNewYear }) => {
 
                 <div className="space-y-6 relative z-10">
                     <p className="text-slate-400 text-sm leading-relaxed">
-                        Utiliza esta opción al iniciar un nuevo año fiscal. Esta acción <span className="text-white font-bold">borrará todos los registros mensuales</span> (ingresos, gastos, clases) pero mantendrá tu base de datos de alumnos, categorías y configuración.
+                        Utiliza esta opción al iniciar un nuevo año fiscal. Esta acción <span className="text-white font-bold">borrará todos los registros mensuales</span> pero mantendrá tu sueldo base, categorías y alumnos.
                     </p>
 
                     <div className="p-4 bg-rose-500/10 rounded-xl border border-rose-500/20">
                         <p className="text-rose-300 text-xs font-bold flex gap-2 items-start">
                             <TriangleAlert className="w-4 h-4 shrink-0 mt-0.5" />
-                            Se descargará automáticamente un respaldo antes de borrar los datos.
+                            Se descargará automáticamente un respaldo antes de reiniciar los meses.
                         </p>
                     </div>
 
@@ -762,10 +898,6 @@ const DataManagement = ({ data, onLoadData, onStartNewYear }) => {
                         <RefreshCw className="w-5 h-5" />
                         <span>Iniciar Nuevo Año</span>
                     </button>
-
-                    <p className="text-center text-[10px] text-slate-500 uppercase tracking-widest font-bold">
-                        Acción Irreversible
-                    </p>
                 </div>
             </div>
         </div>
@@ -773,18 +905,20 @@ const DataManagement = ({ data, onLoadData, onStartNewYear }) => {
 };
 
 const VirtualClockManager = ({ virtualDate, setVirtualDate, resetVirtualDate }) => {
-    const [inputValue, setInputValue] = useState(virtualDate ? virtualDate.toISOString().split('T')[0] : '');
+    const getInitialInputValue = () => {
+        if (!virtualDate) return '';
+        if (typeof virtualDate === 'string') return virtualDate;
+        if (virtualDate instanceof Date) return virtualDate.toISOString().split('T')[0];
+        return '';
+    };
+
+    const [inputValue, setInputValue] = useState(getInitialInputValue());
 
     const handleApply = (e) => {
         e.preventDefault();
         if (inputValue) {
-            // Need to handle timezone issues. Just parse it as midnight local time
-            const parts = inputValue.split('-');
-            if (parts.length === 3) {
-                const newDate = new Date(parts[0], parts[1] - 1, parts[2]);
-                setVirtualDate(newDate);
-                alert("Reloj virtual actualizado a " + newDate.toLocaleDateString('es-CL'));
-            }
+            setVirtualDate(inputValue);
+            alert("Reloj virtual actualizado a la fecha: " + inputValue);
         }
     };
 
@@ -837,7 +971,7 @@ const VirtualClockManager = ({ virtualDate, setVirtualDate, resetVirtualDate }) 
                 {virtualDate && (
                     <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl mt-4">
                         <p className="text-blue-300 text-xs font-bold text-center flex items-center justify-center gap-2">
-                            <Clock className="w-4 h-4" /> El reloj virtual está actualmente ACTIVO. La aplicación simula la fecha: {new Date(virtualDate).toLocaleDateString('es-CL')}
+                            <Clock className="w-4 h-4" /> El reloj virtual está actualmente ACTIVO. La aplicación simula la fecha: {virtualDate.toString()}
                         </p>
                     </div>
                 )}

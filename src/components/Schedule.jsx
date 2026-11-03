@@ -349,6 +349,8 @@ const Schedule = () => {
                                         <input
                                             type="time"
                                             step="900"
+                                            min="08:00"
+                                            max="21:45"
                                             className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-950 text-white focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all font-mono [color-scheme:dark]"
                                             value={newEntry.time}
                                             onChange={e => setNewEntry({ ...newEntry, time: e.target.value })}

@@ -5,10 +5,7 @@ import { motion } from 'framer-motion';
 import {
     PieChart, Pie, Cell, ResponsiveContainer, Tooltip
 } from 'recharts';
-import { Target, TrendingUp, PiggyBank, ShoppingBag, AlertTriangle, CheckCircle2, Info } from 'lucide-react';
-
-// Budget band is now read from category.budgetBand ('basicos' | 'estiloVida')
-// Configurable per category in Settings
+import { Target, TrendingUp, PiggyBank, ShoppingBag, AlertTriangle, CheckCircle2, Info, Briefcase } from 'lucide-react';
 
 const BAND_CONFIG = {
     basicos: {
@@ -20,7 +17,7 @@ const BAND_CONFIG = {
         border: 'border-indigo-500/30',
         text: 'text-indigo-400',
         icon: ShoppingBag,
-        detail: '30% arriendo • 5% cuentas • 10% alimentación • 5% transporte'
+        detail: '30% arriendo/vivienda • 10% servicios • 10% alimentación y transporte'
     },
     estiloVida: {
         label: 'Estilo de Vida',
@@ -31,7 +28,7 @@ const BAND_CONFIG = {
         border: 'border-purple-500/30',
         text: 'text-purple-400',
         icon: TrendingUp,
-        detail: 'Gastos personales, ocio, educación'
+        detail: 'Gastos personales, ocio, educación, salidas'
     },
     ahorro: {
         label: 'Ahorro / Deudas / Inversión',
@@ -42,7 +39,7 @@ const BAND_CONFIG = {
         border: 'border-emerald-500/30',
         text: 'text-emerald-400',
         icon: PiggyBank,
-        detail: 'Ahorro, pago de deudas e inversión'
+        detail: 'Fondo de emergencia, amortización de deudas e inversiones'
     }
 };
 
@@ -52,10 +49,13 @@ const BudgetChart = ({ monthIndex }) => {
     const categories = data.categories || [];
 
     const budgetData = useMemo(() => {
-        // Calculate total income for the month
-        const pianoIncome = monthData.pianoClasses.reduce((acc, c) => acc + Number(c.total), 0);
+        // Calculate personal income based on Director Salary + other incomes
+        const defaultSalary = Number(data.salarySettings?.defaultSalary || 0);
+        const mSalary = (monthData.salary !== null && monthData.salary !== undefined)
+            ? Number(monthData.salary)
+            : defaultSalary;
         const otherIncome = monthData.incomes.reduce((acc, c) => acc + Number(c.amount), 0);
-        const totalIncome = pianoIncome + otherIncome;
+        const totalIncome = mSalary + otherIncome;
 
         // Calculate expenses by band
         let basicosReal = 0;
@@ -87,7 +87,7 @@ const BudgetChart = ({ monthIndex }) => {
         // Savings total
         const ahorroReal = (monthData.savings || []).reduce((acc, s) => acc + Number(s.amount), 0);
 
-        // Ideal amounts based on income
+        // Ideal amounts based on total personal income
         const basicosIdeal = totalIncome * 0.50;
         const estiloVidaIdeal = totalIncome * 0.30;
         const ahorroIdeal = totalIncome * 0.20;
@@ -96,6 +96,8 @@ const BudgetChart = ({ monthIndex }) => {
 
         return {
             totalIncome,
+            mSalary,
+            otherIncome,
             totalExpenses,
             bands: {
                 basicos: { real: basicosReal, ideal: basicosIdeal },
@@ -105,7 +107,7 @@ const BudgetChart = ({ monthIndex }) => {
             categoryBreakdown: Object.values(categoryBreakdown).sort((a, b) => b.amount - a.amount),
             ahorroReal
         };
-    }, [monthData, categories]);
+    }, [monthData, categories, data.salarySettings]);
 
     // Donut chart data
     const donutData = [
@@ -122,7 +124,7 @@ const BudgetChart = ({ monthIndex }) => {
         donutData[2].value = 20;
     }
 
-    // Category donut for expense breakdown (with real category colors)
+    // Category donut for expense breakdown
     const categoryDonutData = budgetData.categoryBreakdown.map(cat => ({
         name: cat.name,
         value: cat.amount,
@@ -147,14 +149,26 @@ const BudgetChart = ({ monthIndex }) => {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center gap-3 mb-2">
-                <div className="p-2.5 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl border border-indigo-500/30">
-                    <Target className="w-5 h-5 text-indigo-400" />
+            {/* Header info */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900/40 backdrop-blur-xl p-5 rounded-2xl border border-white/5 shadow-xl">
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl border border-indigo-500/30">
+                        <Target className="w-5 h-5 text-indigo-400" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-bold text-white">Presupuesto 50 / 30 / 20</h3>
+                        <p className="text-xs text-slate-400">
+                            Ingresos del mes: <span className="font-bold text-white font-mono">${budgetData.totalIncome.toLocaleString('es-CL')}</span>
+                            {budgetData.otherIncome > 0 && ` (Sueldo: $${budgetData.mSalary.toLocaleString('es-CL')} + Otros: $${budgetData.otherIncome.toLocaleString('es-CL')})`}
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h3 className="text-lg font-bold text-white">Presupuesto 50/30/20</h3>
-                    <p className="text-xs text-slate-500">Basado en ingresos de ${budgetData.totalIncome.toLocaleString('es-CL')}</p>
+
+                <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400 font-medium">Sueldo Asignado:</span>
+                    <span className="text-sm font-bold text-emerald-400 font-mono bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/20">
+                        ${budgetData.mSalary.toLocaleString('es-CL')}
+                    </span>
                 </div>
             </div>
 
@@ -197,7 +211,7 @@ const BudgetChart = ({ monthIndex }) => {
                                         fontSize: '13px'
                                     }}
                                     itemStyle={{ color: '#fff' }}
-                                    formatter={(value) => [`$${value.toLocaleString('es-CL')}`, '']}
+                                    formatter={(value) => [`$${Number(value).toLocaleString('es-CL')}`, '']}
                                 />
                             </PieChart>
                         </ResponsiveContainer>
@@ -259,7 +273,7 @@ const BudgetChart = ({ monthIndex }) => {
                                             fontSize: '13px'
                                         }}
                                         itemStyle={{ color: '#fff' }}
-                                        formatter={(value) => [`$${value.toLocaleString('es-CL')}`, '']}
+                                        formatter={(value) => [`$${Number(value).toLocaleString('es-CL')}`, '']}
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
@@ -305,7 +319,7 @@ const BudgetChart = ({ monthIndex }) => {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2 }}
-                            className={`p-4 bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/5 hover:border-white/10 transition-all shadow-lg`}
+                            className="p-4 bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/5 hover:border-white/10 transition-all shadow-lg"
                         >
                             <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-3">
@@ -327,7 +341,6 @@ const BudgetChart = ({ monthIndex }) => {
                             </div>
                             {/* Progress Bar */}
                             <div className="relative h-3 bg-slate-800 rounded-full overflow-hidden">
-                                {/* Target marker at 100% */}
                                 <div className="absolute top-0 bottom-0 w-px bg-white/30 z-10" style={{ left: `${Math.min(100, (100 / 150) * 100)}%` }}></div>
                                 <motion.div
                                     initial={{ width: 0 }}
@@ -395,6 +408,7 @@ function tailwindToHex(twClass) {
         'bg-emerald-500': '#10b981',
         'bg-orange-500': '#f97316',
         'bg-cyan-500': '#06b6d4',
+        'bg-sky-500': '#0ea5e9',
         'bg-lime-500': '#84cc16',
         'bg-rose-500': '#f43f5e',
         'bg-violet-500': '#8b5cf6',

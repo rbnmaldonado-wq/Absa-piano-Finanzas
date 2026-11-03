@@ -19,16 +19,22 @@ export const FinanceProvider = ({ children }) => {
 
     const getToday = () => {
         if (virtualDate) {
-            // Asegurarse de que el string YYYY-MM-DD se parsea localmente para evitar desfases de UTC
-            const [year, month, day] = virtualDate.split('-');
-            return new Date(year, month - 1, day);
+            if (typeof virtualDate === 'string') {
+                const [year, month, day] = virtualDate.split('-');
+                return new Date(Number(year), Number(month) - 1, Number(day));
+            }
+            if (virtualDate instanceof Date) {
+                return new Date(virtualDate.getFullYear(), virtualDate.getMonth(), virtualDate.getDate());
+            }
         }
         return new Date();
     };
 
+    const resetVirtualDate = () => setVirtualDate(null);
+
     const updateData = (newData) => {
         setHistory(prev => {
-            const newHistory = [...prev, data];
+            const newHistory = [...prev, JSON.parse(JSON.stringify(data))];
             if (newHistory.length > 50) newHistory.shift(); // Limit history size
             return newHistory;
         });
@@ -80,12 +86,17 @@ export const FinanceProvider = ({ children }) => {
             newData.brandSettings = initialData.brandSettings;
             updated = true;
         }
+        if (!newData.salarySettings) {
+            newData.salarySettings = initialData.salarySettings || { defaultSalary: 0 };
+            updated = true;
+        }
 
-        // Migrate: ensure each month has a savings array
-        if (newData.months && newData.months.some(m => !m.savings)) {
+        // Migrate: ensure each month has a savings array and salary property
+        if (newData.months && newData.months.some(m => !m.savings || m.salary === undefined)) {
             newData.months = newData.months.map(m => ({
                 ...m,
-                savings: m.savings || []
+                savings: m.savings || [],
+                salary: m.salary !== undefined ? m.salary : null
             }));
             updated = true;
         }
@@ -105,7 +116,31 @@ export const FinanceProvider = ({ children }) => {
         if (updated) {
             setLocalStorageData(newData);
         }
-    }, [data.categories, data.paymentMethods, data.schedule, data.brandSettings]);
+    }, [data.categories, data.paymentMethods, data.schedule, data.brandSettings, data.salarySettings]);
+
+    // Salary Management Methods
+    const updateSalarySettings = (updatedFields) => {
+        updateData({
+            ...data,
+            salarySettings: {
+                ...(data.salarySettings || { defaultSalary: 0 }),
+                ...updatedFields
+            }
+        });
+    };
+
+    const updateMonthSalary = (monthIndex, amount) => {
+        const updatedMonths = data.months.map((m, idx) => {
+            if (idx === monthIndex) {
+                return {
+                    ...m,
+                    salary: (amount === '' || amount === null || amount === undefined) ? null : Number(amount)
+                };
+            }
+            return m;
+        });
+        updateData({ ...data, months: updatedMonths });
+    };
 
     // Helper to add a generic transaction (income or expense)
     const addTransaction = (monthIndex, type, transaction) => {
@@ -128,7 +163,7 @@ export const FinanceProvider = ({ children }) => {
         updateData({ ...data, months: updatedMonths });
     };
 
-    // Helper for Piano Classes
+    // Helper for Piano Classes (Now purely academy/schedule management, not personal income)
     const addPianoClass = (monthIndex, pianoClass) => {
         const updatedMonths = data.months.map((m, idx) => {
             if (idx === monthIndex) {
@@ -148,7 +183,7 @@ export const FinanceProvider = ({ children }) => {
                 return {
                     ...m,
                     pianoClasses: m.pianoClasses.map(c =>
-                        c.id === classId ? { ...c, ...updatedFields } : c
+                        c.id == classId ? { ...c, ...updatedFields } : c
                     )
                 };
             }
@@ -157,16 +192,15 @@ export const FinanceProvider = ({ children }) => {
         updateData({ ...data, months: updatedMonths });
     };
 
-    const deletePianoClass = (monthIndex, classObj) => {
+    const deletePianoClass = (monthIndex, classObjOrId) => {
+        const idToDelete = (typeof classObjOrId === 'object' && classObjOrId !== null) ? classObjOrId.id : classObjOrId;
         const updatedMonths = data.months.map((m, idx) => {
             if (idx === monthIndex) {
                 return {
                     ...m,
                     pianoClasses: m.pianoClasses.filter(c => {
-                        // Strict ref equality
-                        if (c === classObj) return false;
-                        // For string/number matching, ensure id is valid, else fallback to ref. (Handles NaN issue)
-                        if (c.id === classObj.id && c.id !== undefined && !Number.isNaN(c.id)) return false;
+                        if (c === classObjOrId) return false;
+                        if (idToDelete !== undefined && c.id == idToDelete) return false;
                         return true;
                     })
                 };
@@ -181,8 +215,8 @@ export const FinanceProvider = ({ children }) => {
             if (idx === monthIndex) {
                 return {
                     ...m,
-                    expenses: type === 'expense' ? m.expenses.map(t => t.id === id ? { ...t, ...updatedFields } : t) : m.expenses,
-                    incomes: type === 'income' ? m.incomes.map(t => t.id === id ? { ...t, ...updatedFields } : t) : m.incomes
+                    expenses: type === 'expense' ? m.expenses.map(t => t.id == id ? { ...t, ...updatedFields } : t) : m.expenses,
+                    incomes: type === 'income' ? m.incomes.map(t => t.id == id ? { ...t, ...updatedFields } : t) : m.incomes
                 };
             }
             return m;
@@ -195,8 +229,8 @@ export const FinanceProvider = ({ children }) => {
             if (idx === monthIndex) {
                 return {
                     ...m,
-                    expenses: type === 'expense' ? m.expenses.filter(t => t.id !== id) : m.expenses,
-                    incomes: type === 'income' ? m.incomes.filter(t => t.id !== id) : m.incomes
+                    expenses: type === 'expense' ? m.expenses.filter(t => t.id != id) : m.expenses,
+                    incomes: type === 'income' ? m.incomes.filter(t => t.id != id) : m.incomes
                 };
             }
             return m;
@@ -215,13 +249,13 @@ export const FinanceProvider = ({ children }) => {
         // Clone items but give them new IDs and set status to Pendiente
         const newItems = prevItems
             .filter(pi => pi.isFixed) // Solo importa si están marcados como fijos/recurrentes
-            .filter(pi => !currentItems.some(ci => ci.description === pi.description && ci.amount === pi.amount))
+            .filter(pi => !currentItems.some(ci => ci.description === pi.description && Number(ci.amount) === Number(pi.amount)))
             .map(pi => ({
                 ...pi,
                 id: Date.now() + Math.random(),
                 status: 'Pendiente',
                 paymentDate: null,
-                date: getToday().toISOString().split('T')[0] // Use current/virtual date for the new month's record
+                date: getToday().toISOString().split('T')[0]
             }));
 
         if (newItems.length === 0) return 0;
@@ -241,24 +275,23 @@ export const FinanceProvider = ({ children }) => {
         return newItems.length;
     };
 
-    // KPI Calculations
+    // KPI Calculations (Based on Director Salary + Other Incomes vs Expenses + Savings)
     const getAnnualSummary = () => {
         let totalIncome = 0;
         let totalExpense = 0;
+        const defaultSalary = Number(data.salarySettings?.defaultSalary || 0);
 
         data.months.forEach(month => {
             // Expenses
             month.expenses.forEach(e => totalExpense += Number(e.amount));
-            // Savings treated as expenses
+            // Savings treated as personal outflows
             (month.savings || []).forEach(s => totalExpense += Number(s.amount));
-            // Incomes
+            // Personal Director Salary
+            const mSalary = (month.salary !== null && month.salary !== undefined) ? Number(month.salary) : defaultSalary;
+            totalIncome += mSalary;
+            // Other Personal Incomes
             month.incomes.forEach(i => totalIncome += Number(i.amount));
-            // Piano Classes (Calculate as income)
-            month.pianoClasses.forEach(c => {
-                // Only count if paid? Or projected? Let's count all for now or add a filter by status later
-                // For balance usually we count realized income. Let's assume 'total' is the value
-                totalIncome += Number(c.total);
-            });
+            // Note: month.pianoClasses are NOT summed to personal income!
         });
 
         return {
@@ -277,14 +310,13 @@ export const FinanceProvider = ({ children }) => {
     const updateStudentInDb = (id, updatedFields) => {
         // Actualizamos base de datos principal
         const updatedDb = (data.studentDb || []).map(s =>
-            s.id === id ? { ...s, ...updatedFields } : s
+            s.id == id ? { ...s, ...updatedFields } : s
         );
 
         // Propagamos a meses: si la clase está pendiente, toma el nuevo rate, nombre, duración, familia y recalcula total
         const updatedMonths = (data.months || []).map((m) => {
             const newClasses = (m.pianoClasses || []).map(c => {
                 if (c.studentId == id && c.status === 'Pendiente') {
-                    // Evitamos overwrite si updatedFields no trae estos valores, usamos short values si existen
                     const newRate = updatedFields.defaultRate !== undefined ? updatedFields.defaultRate : c.rate;
                     const newName = updatedFields.name !== undefined ? updatedFields.name : c.studentName;
                     const newFamily = updatedFields.family !== undefined ? updatedFields.family : c.family;
@@ -331,13 +363,17 @@ export const FinanceProvider = ({ children }) => {
     };
 
     const deleteStudentInDb = (id) => {
-        const updatedDb = (data.studentDb || []).filter(s => s.id !== id);
-        updateData({ ...data, studentDb: updatedDb });
+        const updatedDb = (data.studentDb || []).filter(s => s.id != id);
+        // Clean studentId reference in schedule so it doesn't point to dangling ID
+        const updatedSchedule = (data.schedule || []).map(item =>
+            item.studentId == id ? { ...item, studentId: '' } : item
+        );
+        updateData({ ...data, studentDb: updatedDb, schedule: updatedSchedule });
     };
 
     const importStudentsToMonth = (monthIndex) => {
         const activeStudents = (data.studentDb || []).filter(s => s.active !== false);
-        const currentMonthClasses = data.months[monthIndex].pianoClasses;
+        const currentMonthClasses = data.months[monthIndex].pianoClasses || [];
 
         const newClasses = activeStudents
             .filter(s => {
@@ -376,7 +412,7 @@ export const FinanceProvider = ({ children }) => {
 
     const importSpecificStudents = (monthIndex, studentIds) => {
         const selectedStudents = (data.studentDb || []).filter(s => studentIds.includes(s.id));
-        const currentMonthClasses = data.months[monthIndex].pianoClasses;
+        const currentMonthClasses = data.months[monthIndex].pianoClasses || [];
 
         const newClasses = selectedStudents
             .filter(s => {
@@ -421,20 +457,20 @@ export const FinanceProvider = ({ children }) => {
 
     const updatePaymentMethod = (id, updatedFields) => {
         const updatedMethods = (data.paymentMethods || []).map(m =>
-            m.id === id ? { ...m, ...updatedFields } : m
+            m.id == id ? { ...m, ...updatedFields } : m
         );
         updateData({ ...data, paymentMethods: updatedMethods });
     };
 
     const deletePaymentMethod = (id) => {
-        const updatedMethods = (data.paymentMethods || []).filter(m => m.id !== id);
+        const updatedMethods = (data.paymentMethods || []).filter(m => m.id != id);
         updateData({ ...data, paymentMethods: updatedMethods });
     };
 
     // Categories & Subcategories
     const addSubcategory = (categoryId, subcategoryName) => {
         const updatedCategories = data.categories.map(cat => {
-            if (cat.id === categoryId) {
+            if (cat.id == categoryId) {
                 return {
                     ...cat,
                     subcategories: [...(cat.subcategories || []), subcategoryName]
@@ -452,19 +488,19 @@ export const FinanceProvider = ({ children }) => {
 
     const updateCategory = (categoryId, updatedFields) => {
         const updatedCategories = data.categories.map(cat =>
-            cat.id === categoryId ? { ...cat, ...updatedFields } : cat
+            cat.id == categoryId ? { ...cat, ...updatedFields } : cat
         );
         updateData({ ...data, categories: updatedCategories });
     };
 
     const deleteCategory = (categoryId) => {
-        const updatedCategories = data.categories.filter(cat => cat.id !== categoryId);
+        const updatedCategories = data.categories.filter(cat => cat.id != categoryId);
         updateData({ ...data, categories: updatedCategories });
     };
 
     const deleteSubcategory = (categoryId, subcategoryName) => {
         const updatedCategories = data.categories.map(cat => {
-            if (cat.id === categoryId) {
+            if (cat.id == categoryId) {
                 return {
                     ...cat,
                     subcategories: (cat.subcategories || []).filter(sub => sub !== subcategoryName)
@@ -483,13 +519,13 @@ export const FinanceProvider = ({ children }) => {
 
     const updateScheduleEntry = (id, updatedFields) => {
         const updatedSchedule = (data.schedule || []).map(item =>
-            item.id === id ? { ...item, ...updatedFields } : item
+            item.id == id ? { ...item, ...updatedFields } : item
         );
         updateData({ ...data, schedule: updatedSchedule });
     };
 
     const deleteScheduleEntry = (id) => {
-        const updatedSchedule = (data.schedule || []).filter(item => item.id !== id);
+        const updatedSchedule = (data.schedule || []).filter(item => item.id != id);
         updateData({ ...data, schedule: updatedSchedule });
     };
 
@@ -513,7 +549,7 @@ export const FinanceProvider = ({ children }) => {
                 return {
                     ...m,
                     savings: (m.savings || []).map(s =>
-                        s.id === savingId ? { ...s, ...updatedFields } : s
+                        s.id == savingId ? { ...s, ...updatedFields } : s
                     )
                 };
             }
@@ -527,7 +563,7 @@ export const FinanceProvider = ({ children }) => {
             if (idx === monthIndex) {
                 return {
                     ...m,
-                    savings: (m.savings || []).filter(s => s.id !== savingId)
+                    savings: (m.savings || []).filter(s => s.id != savingId)
                 };
             }
             return m;
@@ -551,19 +587,11 @@ export const FinanceProvider = ({ children }) => {
     };
 
     const startNewYear = () => {
-        // Create a fresh copy of initial months structure
         const freshMonths = JSON.parse(JSON.stringify(initialData.months));
-
         updateData({
             ...data,
             months: freshMonths,
-            schedule: [], // Optional: clear schedule or keep it? User said "resets monthly data", usually schedule implies weekly recurrence functionality which might persist.
-            // Let's keep schedule if it's a weekly recurrence. If it's specific dates, reset.
-            // based on the code, it's "Lunes", "Martes" etc, so it's a weekly schedule.
-            // Keeping schedule might be better, or offering option. 
-            // The prompt says "resets monthly data". I'll keep schedule for now as it's likely recurring.
-            // Actually user said "datos mensuales", schedule is weekly.
-            // Let's just reset months.
+            schedule: data.schedule || []
         });
     };
 
@@ -606,7 +634,10 @@ export const FinanceProvider = ({ children }) => {
         deleteSaving,
         virtualDate,
         setVirtualDate,
-        getToday
+        resetVirtualDate,
+        getToday,
+        updateSalarySettings,
+        updateMonthSalary
     };
 
     return (

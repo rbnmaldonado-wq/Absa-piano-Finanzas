@@ -11,7 +11,7 @@ export const initialCategories = [
     { id: 4, name: "Salud", color: "bg-red-500", type: "expense", budgetBand: "basicos", subcategories: ["Medicamentos", "Consultas", "Exámenes"] },
     { id: 5, name: "Educación", color: "bg-purple-500", type: "expense", budgetBand: "estiloVida", subcategories: ["Cursos", "Materiales"] },
     { id: 6, name: "Ocio", color: "bg-pink-500", type: "expense", budgetBand: "estiloVida", subcategories: ["Cine", "Salidas", "Streaming"] },
-    { id: 7, name: "Clases de Piano", color: "bg-indigo-500", type: "income", subcategories: [] },
+    { id: 7, name: "Sueldo Director", color: "bg-indigo-500", type: "income", subcategories: ["Sueldo Base", "Bono", "Reajuste"] },
     { id: 8, name: "Otros Ingresos", color: "bg-teal-500", type: "income", subcategories: [] },
 ];
 
@@ -26,8 +26,12 @@ export const initialData = {
     categories: initialCategories,
     paymentMethods: initialPaymentMethods,
     studentDb: [], // { id, name, defaultRate, active: true/false }
+    salarySettings: {
+        defaultSalary: 0 // Sueldo mensual predeterminado como Director
+    },
     months: months.map(m => ({
         name: m,
+        salary: null,     // Sueldo específico del mes (si es null, usa defaultSalary)
         pianoClasses: [], // { id, studentName, rate, count, total, paymentDate, status: 'Pendiente' | 'Al día' }
         expenses: [],     // { id, categoryId, amount, description, date, subcategory, paymentMethodId }
         incomes: [],      // { id, categoryId, amount, description, date }

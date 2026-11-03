@@ -1,16 +1,47 @@
-
 import React, { useState, useMemo } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import PianoClassesTable from './PianoClassesTable';
 import BudgetChart from './BudgetChart';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Trash2, TrendingUp, TrendingDown, DollarSign, ArrowLeft, CreditCard, Tag, Wallet, X, Download, Pencil, CheckCircle, Clock, PiggyBank, Target, Filter, ChevronDown, ChevronUp, Repeat, Users } from 'lucide-react';
+import {
+    Plus, Trash2, TrendingUp, TrendingDown, DollarSign, ArrowLeft, CreditCard,
+    Tag, Wallet, X, Download, Pencil, CheckCircle, Clock, PiggyBank, Filter,
+    Repeat, Users, Briefcase, Check, RotateCcw
+} from 'lucide-react';
 
 const MonthView = ({ monthIndex, onBack }) => {
-    const { data, addTransaction, deleteTransaction, importTransactionsFromPreviousMonth, updateTransaction, addSaving, deleteSaving, getToday } = useFinance();
-    const monthData = data.months[monthIndex];
+    const {
+        data,
+        addTransaction,
+        deleteTransaction,
+        importTransactionsFromPreviousMonth,
+        updateTransaction,
+        addSaving,
+        deleteSaving,
+        getToday,
+        updateMonthSalary
+    } = useFinance();
 
-    const [activeTab, setActiveTab] = useState('piano'); // 'piano', 'incomes', 'expenses', 'savings', 'budget'
+    const monthData = data.months[monthIndex];
+    const defaultSalary = Number(data.salarySettings?.defaultSalary || 0);
+    const hasCustomSalary = monthData.salary !== null && monthData.salary !== undefined;
+    const currentSalary = hasCustomSalary ? Number(monthData.salary) : defaultSalary;
+
+    // Default to 'budget' as requested for personal financial planning focus
+    const [activeTab, setActiveTab] = useState('budget'); // 'budget', 'expenses', 'savings', 'incomes', 'piano'
+    const [isEditingSalary, setIsEditingSalary] = useState(false);
+    const [tempSalary, setTempSalary] = useState(currentSalary.toString());
+
+    const getDefaultDateForMonth = () => {
+        const year = data.year || new Date().getFullYear();
+        const mm = String(monthIndex + 1).padStart(2, '0');
+        const today = getToday();
+        const day = (today.getFullYear() === year && today.getMonth() === monthIndex)
+            ? String(today.getDate()).padStart(2, '0')
+            : '01';
+        return `${year}-${mm}-${day}`;
+    };
+
     const [isAdding, setIsAdding] = useState(false);
     const [newTransaction, setNewTransaction] = useState({
         description: '',
@@ -18,11 +49,7 @@ const MonthView = ({ monthIndex, onBack }) => {
         categoryId: '',
         subcategory: '',
         paymentMethodId: '',
-        date: (() => {
-            const today = getToday();
-            const d = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
-            return d.toISOString().split('T')[0];
-        })(),
+        date: getDefaultDateForMonth(),
         isFixed: false
     });
 
@@ -33,7 +60,7 @@ const MonthView = ({ monthIndex, onBack }) => {
 
     const hasActiveFilters = selectedCategoryIds.length > 0 || selectedPaymentMethodIds.length > 0;
 
-    const activeTransactions = activeTab === 'expenses' 
+    const activeTransactions = activeTab === 'expenses'
         ? [
             ...monthData.expenses,
             ...(monthData.savings || []).map(s => ({
@@ -41,8 +68,9 @@ const MonthView = ({ monthIndex, onBack }) => {
                 isSaving: true,
                 status: 'Al día',
             }))
-        ] 
+        ]
         : (activeTab === 'incomes' ? monthData.incomes : []);
+
     const filteredTransactions = activeTransactions.filter(tx => {
         const categoryMatch = selectedCategoryIds.length === 0 || selectedCategoryIds.includes(Number(tx.categoryId));
         const paymentMethodMatch = activeTab !== 'expenses' || selectedPaymentMethodIds.length === 0 || selectedPaymentMethodIds.includes(Number(tx.paymentMethodId));
@@ -65,15 +93,18 @@ const MonthView = ({ monthIndex, onBack }) => {
     }, [activeTransactions]);
 
     const getMonthSummary = () => {
-        const pianoTotal = monthData.pianoClasses.reduce((acc, curr) => acc + Number(curr.total), 0);
         const otherIncomes = monthData.incomes.reduce((acc, curr) => acc + Number(curr.amount), 0);
         const totalExpenses = monthData.expenses.reduce((acc, curr) => acc + Number(curr.amount), 0);
         const totalSavings = (monthData.savings || []).reduce((acc, curr) => acc + Number(curr.amount), 0);
+        const totalPersonalIncome = currentSalary + otherIncomes;
+
         return {
-            income: pianoTotal + otherIncomes,
+            income: totalPersonalIncome,
             expense: totalExpenses + totalSavings,
-            balance: (pianoTotal + otherIncomes) - (totalExpenses + totalSavings),
-            savings: totalSavings
+            balance: totalPersonalIncome - (totalExpenses + totalSavings),
+            savings: totalSavings,
+            salary: currentSalary,
+            otherIncomes
         };
     };
 
@@ -85,11 +116,7 @@ const MonthView = ({ monthIndex, onBack }) => {
         amount: '',
         type: 'ahorro',
         paymentMethodId: '',
-        date: (() => {
-            const today = getToday();
-            const d = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
-            return d.toISOString().split('T')[0];
-        })()
+        date: getDefaultDateForMonth()
     });
     const [isAddingSaving, setIsAddingSaving] = useState(false);
 
@@ -97,12 +124,29 @@ const MonthView = ({ monthIndex, onBack }) => {
         e.preventDefault();
         if (!newSaving.amount) return;
         addSaving(monthIndex, newSaving);
-        setNewSaving({ description: '', amount: '', type: 'ahorro', paymentMethodId: '', date: (() => {
-            const today = getToday();
-            const d = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
-            return d.toISOString().split('T')[0];
-        })() });
+        setNewSaving({
+            description: '',
+            amount: '',
+            type: 'ahorro',
+            paymentMethodId: '',
+            date: getDefaultDateForMonth()
+        });
         setIsAddingSaving(false);
+    };
+
+    const handleSaveSalary = (e) => {
+        e.preventDefault();
+        const numeric = Number(tempSalary);
+        if (!isNaN(numeric) && numeric >= 0) {
+            updateMonthSalary(monthIndex, numeric);
+        }
+        setIsEditingSalary(false);
+    };
+
+    const handleResetSalaryToBase = () => {
+        updateMonthSalary(monthIndex, null);
+        setTempSalary(defaultSalary.toString());
+        setIsEditingSalary(false);
     };
 
     const handleAddTransaction = (e) => {
@@ -116,9 +160,9 @@ const MonthView = ({ monthIndex, onBack }) => {
             const method = data.paymentMethods?.find(m => m.id == newTransaction.paymentMethodId);
             if (method && method.type === 'credit' && method.cutoffDate) {
                 const parts = newTransaction.date.split('-');
-                const txMonth = parseInt(parts[1], 10) - 1; // 0-based month
+                const txMonth = parseInt(parts[1], 10) - 1;
                 const day = parseInt(parts[2], 10);
-                
+
                 let billingMonthIndex = txMonth;
                 if (day >= method.cutoffDate) {
                     billingMonthIndex = txMonth + 1;
@@ -146,89 +190,190 @@ const MonthView = ({ monthIndex, onBack }) => {
             categoryId: '',
             subcategory: '',
             paymentMethodId: '',
-            date: (() => {
-                const today = getToday();
-                const d = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
-                return d.toISOString().split('T')[0];
-            })(),
+            date: getDefaultDateForMonth(),
             isFixed: false
         });
         setIsAdding(false);
     };
 
-    // Use categories from context only
     const categories = (data.categories || []).filter(c =>
         activeTab === 'expenses' ? c.type === 'expense' : c.type === 'income'
     );
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={onBack}
-                    className="p-2 rounded-full hover:bg-white/5 transition-colors text-slate-400 hover:text-white"
-                >
-                    <ArrowLeft className="w-6 h-6" />
-                </button>
-                <h2 className="text-2xl font-bold text-white">{monthData.name}</h2>
+            {/* Top Bar with Month Name and Back button */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex items-center gap-4">
+                    <button
+                        onClick={onBack}
+                        className="p-2.5 rounded-2xl bg-slate-900/40 hover:bg-white/10 border border-white/5 transition-colors text-slate-400 hover:text-white"
+                        title="Volver al Dashboard"
+                    >
+                        <ArrowLeft className="w-5 h-5" />
+                    </button>
+                    <div>
+                        <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                            {monthData.name} {data.year}
+                        </h2>
+                        <p className="text-xs text-slate-400">Planificación mensual y presupuesto</p>
+                    </div>
+                </div>
+
+                {/* Director Salary Badge & Quick Edit Button */}
+                <div className="flex items-center gap-3 bg-slate-900/60 backdrop-blur-xl border border-white/5 px-4 py-2.5 rounded-2xl shadow-lg">
+                    <div className="p-2 bg-indigo-500/20 text-indigo-300 rounded-xl border border-indigo-500/30">
+                        <Briefcase className="w-4 h-4" />
+                    </div>
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                Sueldo Director
+                            </span>
+                            {hasCustomSalary ? (
+                                <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                                    Ajuste de mes
+                                </span>
+                            ) : (
+                                <span className="text-[9px] font-bold text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">
+                                    Base
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-base font-bold text-white font-mono">
+                            ${currentSalary.toLocaleString('es-CL')}
+                        </p>
+                    </div>
+
+                    <button
+                        onClick={() => {
+                            setTempSalary(currentSalary.toString());
+                            setIsEditingSalary(!isEditingSalary);
+                        }}
+                        className="ml-2 p-1.5 text-slate-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded-lg transition-colors"
+                        title="Ajustar sueldo para este mes"
+                    >
+                        <Pencil className="w-4 h-4" />
+                    </button>
+                </div>
             </div>
 
-            {/* Month Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="relative p-6 bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden group">
+            {/* In-place salary adjustment modal / popover */}
+            <AnimatePresence>
+                {isEditingSalary && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="p-5 bg-slate-900/80 backdrop-blur-xl border border-indigo-500/30 rounded-2xl shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                    >
+                        <div>
+                            <p className="text-sm font-bold text-white flex items-center gap-2">
+                                <Briefcase className="w-4 h-4 text-indigo-400" />
+                                Modificar Sueldo para {monthData.name}
+                            </p>
+                            <p className="text-xs text-slate-400 mt-0.5">
+                                Puedes ingresar el monto exacto recibido este mes (sueldo base, bonos o descuentos).
+                            </p>
+                        </div>
+                        <form onSubmit={handleSaveSalary} className="flex items-center gap-2 w-full sm:w-auto">
+                            <div className="relative">
+                                <DollarSign className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
+                                <input
+                                    type="number"
+                                    className="pl-8 pr-3 py-2 w-44 rounded-xl border border-slate-700 bg-slate-950 text-white font-mono text-sm focus:ring-2 focus:ring-indigo-500/50 outline-none"
+                                    value={tempSalary}
+                                    onChange={(e) => setTempSalary(e.target.value)}
+                                    placeholder="Ej: 1500000"
+                                    autoFocus
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-1.5"
+                            >
+                                <Check className="w-4 h-4" /> Guardar
+                            </button>
+                            {hasCustomSalary && (
+                                <button
+                                    type="button"
+                                    onClick={handleResetSalaryToBase}
+                                    className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs rounded-xl border border-white/5 transition-all flex items-center gap-1.5"
+                                    title="Volver al sueldo base predeterminado"
+                                >
+                                    <RotateCcw className="w-3.5 h-3.5" /> Sueldo Base (${defaultSalary.toLocaleString('es-CL')})
+                                </button>
+                            )}
+                            <button
+                                type="button"
+                                onClick={() => setIsEditingSalary(false)}
+                                className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </form>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Month Summary Cards (Personal Finance KPI) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="relative p-6 bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden group shadow-lg">
                     <div className="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-colors"></div>
-                    <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-1 relative z-10">Ingresos</p>
-                    <p className="text-2xl font-bold text-white flex items-center gap-2 relative z-10">
+                    <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-1 relative z-10">Ingresos (Sueldo)</p>
+                    <p className="text-2xl font-bold text-white flex items-center gap-2 relative z-10 font-mono">
                         ${summary.income.toLocaleString('es-CL')}
                         <TrendingUp className="w-4 h-4 text-emerald-400" />
                     </p>
                 </div>
-                <div className="relative p-6 bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden group">
+                <div className="relative p-6 bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden group shadow-lg">
                     <div className="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-rose-500/10 rounded-full blur-xl group-hover:bg-rose-500/20 transition-colors"></div>
-                    <p className="text-xs font-bold text-rose-400 uppercase tracking-widest mb-1 relative z-10">Gastos</p>
-                    <p className="text-2xl font-bold text-white flex items-center gap-2 relative z-10">
+                    <p className="text-xs font-bold text-rose-400 uppercase tracking-widest mb-1 relative z-10">Gastos Totales</p>
+                    <p className="text-2xl font-bold text-white flex items-center gap-2 relative z-10 font-mono">
                         ${summary.expense.toLocaleString('es-CL')}
                         <TrendingDown className="w-4 h-4 text-rose-400" />
                     </p>
                 </div>
-                <div className="relative p-6 bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden group">
-                    <div className="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-colors"></div>
-                    <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1 relative z-10">Balance</p>
-                    <p className="text-2xl font-bold text-white flex items-center gap-2 relative z-10">
-                        ${summary.balance.toLocaleString('es-CL')}
-                        <Wallet className="w-4 h-4 text-indigo-400" />
-                    </p>
-                </div>
-                <div className="relative p-6 bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden group">
+                <div className="relative p-6 bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden group shadow-lg">
                     <div className="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-teal-500/10 rounded-full blur-xl group-hover:bg-teal-500/20 transition-colors"></div>
-                    <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-1 relative z-10">Ahorro</p>
-                    <p className="text-2xl font-bold text-white flex items-center gap-2 relative z-10">
+                    <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-1 relative z-10">Ahorro / Inversión</p>
+                    <p className="text-2xl font-bold text-white flex items-center gap-2 relative z-10 font-mono">
                         ${summary.savings.toLocaleString('es-CL')}
                         <PiggyBank className="w-4 h-4 text-teal-400" />
                     </p>
                 </div>
+                <div className="relative p-6 bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/5 overflow-hidden group shadow-lg">
+                    <div className="absolute top-0 right-0 -mt-2 -mr-2 w-16 h-16 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-colors"></div>
+                    <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1 relative z-10">Balance Neto</p>
+                    <p className={`text-2xl font-bold flex items-center gap-2 relative z-10 font-mono ${summary.balance >= 0 ? 'text-white' : 'text-rose-400'}`}>
+                        ${summary.balance.toLocaleString('es-CL')}
+                        <Wallet className="w-4 h-4 text-indigo-400" />
+                    </p>
+                </div>
             </div>
 
-            {/* Tabs - Glass Style */}
-            <div className="flex gap-2 p-1.5 bg-slate-900/60 backdrop-blur-xl border border-white/5 rounded-2xl w-fit flex-wrap">
-                {['piano', 'expenses', 'incomes', 'savings', 'budget'].map((tab) => (
+            {/* Navigation Tabs (Prioritizing Financial Planning) */}
+            <div className="flex gap-2 p-1.5 bg-slate-900/60 backdrop-blur-xl border border-white/5 rounded-2xl w-fit flex-wrap shadow-xl">
+                {[
+                    { id: 'budget', label: '📊 Presupuesto 50/30/20' },
+                    { id: 'expenses', label: 'Gastos' },
+                    { id: 'savings', label: '💰 Ahorro / Deuda' },
+                    { id: 'incomes', label: 'Sueldo e Ingresos' },
+                    { id: 'piano', label: '🎹 Alumnos (Academia)' }
+                ].map((tab) => (
                     <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`relative px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 ${activeTab === tab
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`relative px-5 py-2.5 rounded-xl font-medium text-sm transition-all duration-300 ${activeTab === tab.id
                             ? 'bg-indigo-500/20 text-indigo-300 shadow-[0_0_20px_rgba(99,102,241,0.3)] border border-indigo-500/30'
                             : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'}`}
                     >
-                        {tab === 'piano' && 'Clases de Piano'}
-                        {tab === 'expenses' && 'Gastos'}
-                        {tab === 'incomes' && 'Otros Ingresos'}
-                        {tab === 'savings' && '💰 Ahorro'}
-                        {tab === 'budget' && '📊 Presupuesto'}
+                        {tab.label}
                     </button>
                 ))}
             </div>
 
-            {/* Content */}
+            {/* Active Tab Content */}
             <motion.div
                 key={activeTab}
                 initial={{ opacity: 0, x: 10 }}
@@ -236,10 +381,18 @@ const MonthView = ({ monthIndex, onBack }) => {
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
             >
-                {activeTab === 'piano' ? (
-                    <PianoClassesTable monthIndex={monthIndex} />
-                ) : activeTab === 'budget' ? (
+                {activeTab === 'budget' ? (
                     <BudgetChart monthIndex={monthIndex} />
+                ) : activeTab === 'piano' ? (
+                    <div className="space-y-4">
+                        <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center gap-3 text-xs text-indigo-300">
+                            <Users className="w-5 h-5 text-indigo-400 shrink-0" />
+                            <span>
+                                <strong>Gestión de la Academia:</strong> Las clases y alumnos registrados aquí sirven para control docente y de cobros de la academia, pero <strong>no se suman a tus ingresos personales</strong> (los cuales provienen de tu sueldo de director).
+                            </span>
+                        </div>
+                        <PianoClassesTable monthIndex={monthIndex} />
+                    </div>
                 ) : activeTab === 'savings' ? (
                     /* Savings Tab */
                     <div className="bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-white/5 p-8 shadow-2xl shadow-black/20">
@@ -257,7 +410,7 @@ const MonthView = ({ monthIndex, onBack }) => {
                                     : 'bg-teal-600 text-white hover:bg-teal-500 shadow-teal-500/20'}`}
                             >
                                 {isAddingSaving ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                                {isAddingSaving ? 'Cancelar' : 'Agregar'}
+                                {isAddingSaving ? 'Cancelar' : 'Agregar Ahorro'}
                             </button>
                         </div>
 
@@ -317,7 +470,7 @@ const MonthView = ({ monthIndex, onBack }) => {
                                 <div className="text-center py-12">
                                     <PiggyBank className="w-12 h-12 text-slate-600 mx-auto mb-3" />
                                     <p className="text-slate-400">No hay registros de ahorro.</p>
-                                    <p className="text-slate-500 text-sm mt-1">Agrega tu primer ahorro, pago de deuda o inversión.</p>
+                                    <p className="text-slate-500 text-sm mt-1">Agrega tu primer ahorro, amortización de deuda o inversión.</p>
                                 </div>
                             )}
                             {(monthData.savings || []).map((saving, idx) => {
@@ -369,13 +522,51 @@ const MonthView = ({ monthIndex, onBack }) => {
                         )}
                     </div>
                 ) : (
+                    /* Incomes and Expenses Tabs */
                     <div className="bg-slate-900/40 backdrop-blur-xl rounded-3xl border border-white/5 p-8 shadow-2xl shadow-black/20">
+                        {/* If in Incomes tab, show Director Salary hero banner */}
+                        {activeTab === 'incomes' && (
+                            <div className="mb-8 p-6 bg-gradient-to-r from-indigo-500/10 via-slate-900/60 to-purple-500/10 rounded-2xl border border-indigo-500/20 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-indigo-500/20 text-indigo-300 rounded-2xl border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
+                                        <Briefcase className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
+                                            Ingreso Principal
+                                        </span>
+                                        <h4 className="text-xl font-bold text-white">Sueldo Director</h4>
+                                        <p className="text-xs text-slate-400 mt-0.5">
+                                            {hasCustomSalary
+                                                ? `Ajustado especialmente para ${monthData.name}`
+                                                : `Usando sueldo base predeterminado ($${defaultSalary.toLocaleString('es-CL')})`}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <span className="text-2xl font-bold text-white font-mono">
+                                        ${currentSalary.toLocaleString('es-CL')}
+                                    </span>
+                                    <button
+                                        onClick={() => {
+                                            setTempSalary(currentSalary.toString());
+                                            setIsEditingSalary(true);
+                                        }}
+                                        className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-1.5"
+                                    >
+                                        <Pencil className="w-3.5 h-3.5" /> Ajustar
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                             <h3 className="text-xl font-bold text-white flex items-center gap-3">
                                 <div className={`p-2 rounded-xl border ${activeTab === 'expenses' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'}`}>
                                     {activeTab === 'expenses' ? <TrendingDown className="w-5 h-5" /> : <TrendingUp className="w-5 h-5" />}
                                 </div>
-                                {activeTab === 'expenses' ? 'Registro de Gastos' : 'Otros Ingresos'}
+                                {activeTab === 'expenses' ? 'Registro de Gastos' : 'Otros Ingresos Adicionales'}
                             </h3>
                             <div className="flex flex-wrap items-center gap-3 md:gap-4 w-full md:w-auto justify-end">
                                 {hasActiveFilters && (
@@ -412,37 +603,37 @@ const MonthView = ({ monthIndex, onBack }) => {
                                             }`}
                                     >
                                         {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                                        <span className="hidden sm:inline">{isAdding ? 'Cancelar' : 'Agregar'}</span>
+                                        <span className="hidden sm:inline">{isAdding ? 'Cancelar' : (activeTab === 'expenses' ? 'Agregar Gasto' : 'Agregar Ingreso')}</span>
                                     </button>
                                 </div>
 
-                                {monthIndex > 0 && (
+                                {monthIndex > 0 && activeTab === 'expenses' && (
                                     <button
                                         onClick={() => {
-                                            const count = importTransactionsFromPreviousMonth(monthIndex, activeTab === 'expenses' ? 'expense' : 'income');
+                                            const count = importTransactionsFromPreviousMonth(monthIndex, 'expense');
                                             if (count > 0) {
-                                                // Optional: toast or alert
+                                                alert(`Se importaron ${count} gastos fijos del mes pasado.`);
                                             } else {
-                                                alert("No hay registros nuevos para importar del mes pasado.");
+                                                alert("No hay gastos fijos nuevos para importar del mes pasado.");
                                             }
                                         }}
                                         className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl hover:bg-emerald-500/20 transition-all text-sm font-bold border border-emerald-500/30 shadow-lg shadow-emerald-500/5 h-[42px]"
-                                        title="Importar registros del mes pasado"
+                                        title="Importar gastos fijos del mes anterior"
                                     >
                                         <Download className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Importar {activeTab === 'expenses' ? 'Gastos' : 'Ingresos'}</span>
+                                        <span className="hidden sm:inline">Importar Gastos Fijos</span>
                                     </button>
                                 )}
                             </div>
                         </div>
 
-                        {/* Stats Section for Incomes and Expenses */}
+                        {/* Stats Section */}
                         <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-950/20 p-6 rounded-2xl border border-white/5 shadow-inner">
                             <div className="bg-slate-900/50 rounded-2xl p-5 border border-white/5 border-l-4 border-l-emerald-500/50 flex items-center justify-between shadow-lg shadow-black/20">
                                 <div>
                                     <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                                         <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                                        Pagados
+                                        Pagados / Realizados
                                     </p>
                                     <p className="text-2xl lg:text-3xl font-bold text-white font-mono">${txStats.paid.toLocaleString('es-CL')}</p>
                                 </div>
@@ -468,7 +659,7 @@ const MonthView = ({ monthIndex, onBack }) => {
                                 <div>
                                     <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
                                         <Users className="w-3.5 h-3.5 text-indigo-500" />
-                                        {activeTab === 'expenses' ? 'Total Gastos' : 'Total Ingresos'}
+                                        {activeTab === 'expenses' ? 'Total Gastos' : 'Otros Ingresos'}
                                     </p>
                                     <p className="text-2xl lg:text-3xl font-bold text-white font-mono">${txStats.total.toLocaleString('es-CL')}</p>
                                 </div>
@@ -533,7 +724,7 @@ const MonthView = ({ monthIndex, onBack }) => {
                                                                     );
                                                                 }}
                                                                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${isSelected
-                                                                    ? `${cat.color} text-white border-transparent shadow-lg shadow-${cat.color.split('-')[1]}-500/20`
+                                                                    ? `${cat.color} text-white border-transparent shadow-lg`
                                                                     : 'bg-slate-900/50 text-slate-400 border-white/5 hover:border-slate-700'
                                                                     }`}
                                                             >
@@ -545,38 +736,41 @@ const MonthView = ({ monthIndex, onBack }) => {
                                             </div>
 
                                             {/* Payment Methods Filter */}
-                                            <div className="space-y-3">
-                                                <p className="text-xs font-bold text-slate-500 flex items-center gap-2">
-                                                    <CreditCard className="w-3 h-3" /> MEDIOS DE PAGO (TARJETAS)
-                                                </p>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {data.paymentMethods.map(method => {
-                                                        const isSelected = selectedPaymentMethodIds.includes(method.id);
-                                                        return (
-                                                            <button
-                                                                key={method.id}
-                                                                onClick={() => {
-                                                                    setSelectedPaymentMethodIds(prev =>
-                                                                        isSelected ? prev.filter(id => id !== method.id) : [...prev, method.id]
-                                                                    );
-                                                                }}
-                                                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${isSelected
-                                                                    ? `${method.color} text-white border-transparent shadow-lg shadow-${method.color.split('-')[1]}-500/20`
-                                                                    : 'bg-slate-900/50 text-slate-400 border-white/5 hover:border-slate-700'
-                                                                    }`}
-                                                            >
-                                                                {method.name}
-                                                            </button>
-                                                        );
-                                                    })}
+                                            {activeTab === 'expenses' && (
+                                                <div className="space-y-3">
+                                                    <p className="text-xs font-bold text-slate-500 flex items-center gap-2">
+                                                        <CreditCard className="w-3 h-3" /> MEDIOS DE PAGO
+                                                    </p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {data.paymentMethods.map(method => {
+                                                            const isSelected = selectedPaymentMethodIds.includes(method.id);
+                                                            return (
+                                                                <button
+                                                                    key={method.id}
+                                                                    onClick={() => {
+                                                                        setSelectedPaymentMethodIds(prev =>
+                                                                            isSelected ? prev.filter(id => id !== method.id) : [...prev, method.id]
+                                                                        );
+                                                                    }}
+                                                                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${isSelected
+                                                                        ? `${method.color} text-white border-transparent shadow-lg`
+                                                                        : 'bg-slate-900/50 text-slate-400 border-white/5 hover:border-slate-700'
+                                                                        }`}
+                                                                >
+                                                                    {method.name}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            )}
                                         </div>
                                     </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
 
+                        {/* Add Transaction Form */}
                         {isAdding && (
                             <form onSubmit={handleAddTransaction} className="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-950/40 p-6 rounded-2xl border border-white/5 shadow-inner">
                                 <input
@@ -683,17 +877,28 @@ const MonthView = ({ monthIndex, onBack }) => {
                                     )}
                                 </div>
                             ) : (
-                                filteredTransactions.map((tx, idx) => (
-                                    <TransactionRow
-                                        key={tx.id || idx}
-                                        tx={tx}
-                                        type={activeTab === 'expenses' ? 'expense' : 'income'}
-                                        categories={data.categories || []}
-                                        paymentMethods={data.paymentMethods || []}
-                                        onUpdate={(updates) => updateTransaction(monthIndex, activeTab === 'expenses' ? 'expense' : 'income', tx.id, updates)}
-                                        onDelete={() => deleteTransaction(monthIndex, activeTab === 'expenses' ? 'expense' : 'income', tx.id)}
-                                    />
-                                ))
+                                filteredTransactions.map((tx, idx) => {
+                                    if (tx.isSaving) {
+                                        return (
+                                            <SavingRow
+                                                key={tx.id || idx}
+                                                tx={tx}
+                                                paymentMethods={data.paymentMethods || []}
+                                            />
+                                        );
+                                    }
+                                    return (
+                                        <TransactionRow
+                                            key={tx.id || idx}
+                                            tx={tx}
+                                            type={activeTab === 'expenses' ? 'expense' : 'income'}
+                                            categories={data.categories || []}
+                                            paymentMethods={data.paymentMethods || []}
+                                            onUpdate={(updates) => updateTransaction(monthIndex, activeTab === 'expenses' ? 'expense' : 'income', tx.id, updates)}
+                                            onDelete={() => deleteTransaction(monthIndex, activeTab === 'expenses' ? 'expense' : 'income', tx.id)}
+                                        />
+                                    );
+                                })
                             )}
                         </div>
                     </div>
@@ -703,51 +908,52 @@ const MonthView = ({ monthIndex, onBack }) => {
     );
 };
 
-const TransactionRow = ({ tx, type, categories, paymentMethods, onUpdate, onDelete }) => {
-    const [isEditing, setIsEditing] = useState(false);
+// Standalone SavingRow to ensure no conditional Hook violation
+const SavingRow = ({ tx, paymentMethods }) => {
+    const paymentMethod = paymentMethods.find(m => m.id == tx.paymentMethodId);
+    const typeLabels = { ahorro: '💰 Ahorro', deuda: '💳 Deuda', inversion: '📈 Inversión' };
+    const typeColors = {
+        ahorro: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
+        deuda: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+        inversion: 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+    };
 
-    if (tx.isSaving) {
-        const paymentMethod = paymentMethods.find(m => m.id == tx.paymentMethodId);
-        const typeLabels = { ahorro: '💰 Ahorro', deuda: '💳 Deuda', inversion: '📈 Inversión' };
-        const typeColors = { ahorro: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30', deuda: 'bg-amber-500/10 text-amber-400 border-amber-500/30', inversion: 'bg-blue-500/10 text-blue-400 border-blue-500/30' };
-
-        return (
-            <div className="flex justify-between items-center p-4 hover:bg-white/5 rounded-2xl transition-all group border border-transparent hover:border-white/5 bg-teal-500/5 shadow-sm">
-                <div className="flex items-center gap-4">
-                    <div className="text-[11px] text-slate-500 font-mono bg-slate-950/50 px-2.5 py-1 rounded-lg border border-white/5">
-                        {tx.date ? tx.date.split('-').reverse().join('/') : '-'}
-                    </div>
-                    <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${typeColors[tx.type] || typeColors.ahorro}`}>
-                        {typeLabels[tx.type] || '💰 Ahorro'}
-                    </div>
-                    <p className="font-bold text-slate-200">{tx.description || 'Sin descripción'}</p>
+    return (
+        <div className="flex justify-between items-center p-4 hover:bg-white/5 rounded-2xl transition-all group border border-transparent hover:border-white/5 bg-teal-500/5 shadow-sm">
+            <div className="flex items-center gap-4">
+                <div className="text-[11px] text-slate-500 font-mono bg-slate-950/50 px-2.5 py-1 rounded-lg border border-white/5">
+                    {tx.date ? tx.date.split('-').reverse().join('/') : '-'}
                 </div>
-                <div className="flex items-center gap-6">
-                    <div className="flex flex-col items-end gap-1.5 min-w-[100px]">
-                        <span className="font-bold text-white text-lg font-mono">
-                            ${Number(tx.amount).toLocaleString('es-CL')}
+                <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${typeColors[tx.type] || typeColors.ahorro}`}>
+                    {typeLabels[tx.type] || '💰 Ahorro'}
+                </div>
+                <p className="font-bold text-slate-200">{tx.description || 'Sin descripción'}</p>
+            </div>
+            <div className="flex items-center gap-6">
+                <div className="flex flex-col items-end gap-1.5 min-w-[100px]">
+                    <span className="font-bold text-white text-lg font-mono">
+                        ${Number(tx.amount).toLocaleString('es-CL')}
+                    </span>
+                    {paymentMethod && (
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full text-white tracking-wide shadow-sm ${paymentMethod.color}`}>
+                            {paymentMethod.name}
                         </span>
-                        {paymentMethod && (
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full text-white tracking-wide shadow-sm ${paymentMethod.color}`}>
-                                {paymentMethod.name}
-                            </span>
-                        )}
-                    </div>
+                    )}
                 </div>
             </div>
-        );
-    }
+        </div>
+    );
+};
+
+const TransactionRow = ({ tx, type, categories, paymentMethods, onUpdate, onDelete }) => {
+    const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState({
         description: tx.description || '',
         amount: tx.amount || '',
         categoryId: tx.categoryId || '',
         subcategory: tx.subcategory || '',
         paymentMethodId: tx.paymentMethodId || '',
-        date: tx.date || (() => {
-            const today = new Date();
-            const d = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
-            return d.toISOString().split('T')[0];
-        })(),
+        date: tx.date || new Date().toISOString().split('T')[0],
         status: tx.status || 'Pendiente',
         paymentDate: tx.paymentDate || null,
         isFixed: tx.isFixed || false
@@ -766,9 +972,6 @@ const TransactionRow = ({ tx, type, categories, paymentMethods, onUpdate, onDele
         let paymentDate = null;
 
         if (newStatus === 'Al día') {
-            // We should ideally use getToday here too, but TransactionRow is not inside FinanceContext.
-            // But actually we are in the same file. I'll just use the system date or pass getToday as a prop?
-            // To keep it simple, we just use system Date for checking payment of AL DIA since it's an exact real-world action usually.
             const todayDate = new Date();
             const dd = String(todayDate.getDate()).padStart(2, '0');
             const mm = String(todayDate.getMonth() + 1).padStart(2, '0');
@@ -808,8 +1011,7 @@ const TransactionRow = ({ tx, type, categories, paymentMethods, onUpdate, onDele
                         <label className="text-[10px] text-slate-500 uppercase font-bold px-1">Fecha</label>
                         <input
                             className="px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white text-xs"
-                            type="text"
-                            placeholder="DD/MM/AAAA"
+                            type="date"
                             value={editData.date}
                             onChange={e => setEditData({ ...editData, date: e.target.value })}
                         />
@@ -905,7 +1107,7 @@ const TransactionRow = ({ tx, type, categories, paymentMethods, onUpdate, onDele
             </div>
             <div className="flex items-center gap-6">
                 <div className="flex flex-col items-end gap-1.5 min-w-[100px]">
-                    <span className="font-bold text-white text-lg">
+                    <span className="font-bold text-white text-lg font-mono">
                         ${Number(tx.amount).toLocaleString('es-CL')}
                     </span>
                     {paymentMethod && (
